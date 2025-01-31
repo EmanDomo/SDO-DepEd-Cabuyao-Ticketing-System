@@ -1,0 +1,163 @@
+body {
+    background-color: #f6f9ff;
+    margin: 0;
+    font-family: Arial, sans-serif;
+}
+
+.login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    width: 100%;
+}
+
+.login-card {
+    width: 100%;
+    max-width: 600px;
+    border: 1px solid #ccc;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    background-color: #ffffff;
+    padding: 30px;
+    text-align: center;
+}
+
+.logo-container {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.logo {
+    width: 100%;
+    max-width: 300px;
+    height: auto;
+    margin-bottom: 15px;
+}
+
+h2 {
+    font-size: 26px;
+    margin: 0;
+    color: #333;
+}
+
+.input-group {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+    width: 100%;
+    position: relative;
+}
+
+.input-icon {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #6c757d;
+    font-size: 20px;
+    pointer-events: none;
+}
+
+.input-field {
+    width: 100%;
+    padding-left: 40px;
+    font-size: 16px;
+    border-radius: 5px;
+    height: 45px;
+    border: 1px solid #ccc;
+}
+
+.input-field:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(38, 143, 255, 0.25);
+}
+
+.login-btn {
+    width: 100%;
+    margin-top: 20px;
+    padding: 12px;
+    font-size: 18px;
+}
+
+.forgot-password {
+    text-align: center;
+    margin-top: 15px;
+    font-size: 15px;
+}
+
+.forgot-password a {
+    color: #007bff;
+    text-decoration: none;
+}
+
+.forgot-password a:hover {
+    text-decoration: underline;
+}
+
+/* Modal Styles */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1050;
+}
+
+.modal-content {
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    background-color: #ffffff;
+    padding: 20px;
+    width: 400px;
+    max-width: 100%;
+}
+
+.modal-header {
+    border-bottom: none;
+    padding-bottom: 15px;
+}
+
+.modal-header .modal-title {
+    font-size: 18px;
+    font-weight: bold;
+    color: #333;
+}
+
+.modal-body {
+    font-size: 16px;
+    color: #555;
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    padding-top: 15px;
+}
+
+.modal-footer button {
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.modal-footer button:hover {
+    background-color: #0056b3;
+}
+
+.modal-footer button:focus {
+    box-shadow: none;
+}
+
+.modal-body p {
+    margin-bottom: 10px;
+}
