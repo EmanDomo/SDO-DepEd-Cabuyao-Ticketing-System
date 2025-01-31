@@ -1,0 +1,51 @@
+.schoolLogin {
+    margin-top: 80px;
+    width: 25%;
+    height: 65vh;
+    border: none;
+    box-shadow: 0 1px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 25px;
+}
+
+.schoolLogo {
+    height: 150px;
+    border-top-left-radius: 25px;
+    border-top-right-radius: 25px;
+    
+}
+
+.Logo-School-login {
+    width: 100px;
+}
+
+.schoolInput {
+    height: 150px;
+}
+
+.schoolInput-username, .schoolInput-password {
+    border-top: none;
+    border-right: none;
+    border-left: none;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.396);
+    background-color: transparent;
+}
+
+.schoolIcon {
+    background-color: none;
+    border: none;
+}
+
+.schoolIconhidden {
+    background-color: none;
+    border: none;
+    color: transparent;
+}
+
+.schoolLoginBtn {
+    width: 50%;
+    background-color: #294a70;
+}
+
+.schoolBtn {
+    margin-top: 90px;
+}

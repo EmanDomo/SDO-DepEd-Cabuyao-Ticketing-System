@@ -14,7 +14,7 @@ body {
 
 .login-card {
     width: 100%;
-    max-width: 600px;
+    max-width: 400px;
     border: 1px solid #ccc;
     box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
     border-radius: 8px;
@@ -160,4 +160,9 @@ h2 {
 
 .modal-body p {
     margin-bottom: 10px;
+}
+
+.Logo-login {
+    width: 100px;
+    height: 100px;
 }

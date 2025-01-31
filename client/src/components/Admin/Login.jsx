@@ -1,47 +1,76 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Container, Form, Button, Card } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faUser, faLock } from "@fortawesome/free-solid-svg-icons";
+import { jwtDecode } from "jwt-decode";
 import '../../styles/Login.css';
+import Logo from "../../Assets/SDO_Logo.png";
 
 const Login = () => {
     const formRef = useRef(null);
     const [errorMessage, setErrorMessage] = useState("");
-    const [remainingAttempts, setRemainingAttempts] = useState(null);
-    const [showModal, setShowModal] = useState(false); 
+    const [remainingAttempts, setRemainingAttempts] = useState(3);
+    const [showModal, setShowModal] = useState(false);
+    const [retryAfter, setRetryAfter] = useState(null);
+    const [countdown, setCountdown] = useState(null);
     const navigate = useNavigate();
 
-    const handleLogin = async (e) => {
-        e.preventDefault();  
+    useEffect(() => {
+        let timer;
+        if (retryAfter !== null) {
+            setCountdown(retryAfter);
+            timer = setInterval(() => {
+                setCountdown((prev) => {
+                    if (prev > 1) return prev - 1;
+                    clearInterval(timer);
+                    setRetryAfter(null);
+                    setRemainingAttempts(3);
+                    return 0;
+                });
+            }, 1000);
+        }
+        return () => clearInterval(timer);
+    }, [retryAfter]);
 
-        const username = formRef.current.username.value; 
-        const password = formRef.current.password.value; 
+    const handleLogin = async (e) => {
+        e.preventDefault();
+
+        const username = formRef.current.username.value;
+        const password = formRef.current.password.value;
 
         try {
-            const response = await fetch(`http://localhost:8080/login`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+            const response = await fetch("http://localhost:8080/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ username, password }),
             });
-            
+
             if (response.ok) {
                 const data = await response.json();
-                localStorage.setItem('token', data.token); 
-                navigate('/ticketdashboard');
+                localStorage.setItem("token", data.token);
+
+                const decodedUser = jwtDecode(data.token);
+                localStorage.setItem("user", JSON.stringify(decodedUser));
+
+                navigate("/ticketdashboard");
             } else {
                 const errorData = await response.json();
                 setErrorMessage(errorData.message);
-                
+
+                if (errorData.retryAfter) {
+                    setRetryAfter(errorData.retryAfter);
+                }
+
                 if (errorData.remainingAttempts !== undefined) {
                     setRemainingAttempts(errorData.remainingAttempts);
-                } else {
-                    setRemainingAttempts(null);
                 }
+
                 setShowModal(true);
             }
         } catch (error) {
-            console.error(error);
+            console.error("Login error:", error);
+            setShowModal(true);
         }
     };
 
@@ -50,8 +79,7 @@ const Login = () => {
             <Card className="login-card">
                 <Card.Body>
                     <div className="logo-container">
-                        <img src="/sdo.png" alt="deped Logo" className="logo" />
-                        <h2>DepEd Cabuyao</h2>
+                        <img alt="Logo" src={Logo} className="Logo-login mx-auto" />
                     </div>
                     <Form ref={formRef}>
                         <Form.Group controlId="username">
@@ -91,8 +119,11 @@ const Login = () => {
                         </div>
                         <div className="modal-body">
                             <p>{errorMessage}</p>
-                            {remainingAttempts !== null && (
+                            {remainingAttempts !== null && remainingAttempts > 0 && retryAfter === null && (
                                 <p>You have {remainingAttempts} attempt(s) left.</p>
+                            )}
+                            {retryAfter !== null && countdown > 0 && (
+                                <p>You can try again in <strong>{countdown}</strong> seconds.</p>
                             )}
                         </div>
                         <div className="modal-footer">
