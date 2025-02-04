@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 
-const AdminDashboard = () => {
+const SchoolDashboard = () => {
     const navigate = useNavigate();
     const [school, setSchool] = useState(null);
 
@@ -26,4 +26,4 @@ const AdminDashboard = () => {
     return school ? <h1>Welcome to {school}</h1> : null;
 };
 
-export default AdminDashboard;
+export default SchoolDashboard;

@@ -53,7 +53,7 @@ const Login = () => {
                 const decodedUser = jwtDecode(data.token);
                 localStorage.setItem("user", JSON.stringify(decodedUser));
 
-                navigate("/ticketdashboard");
+                navigate("/admindashboard");
             } else {
                 const errorData = await response.json();
                 setErrorMessage(errorData.message);

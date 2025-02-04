@@ -29,10 +29,10 @@ const LandingPage = () => {
                   title="Login"
                   menuVariant="dark"
                 >
-                  <NavDropdown.Item href="/SchoolLogin" className="text-center">
+                  <NavDropdown.Item href="/adminlogin" className="text-center">
                     Admin
                   </NavDropdown.Item>
-                  <NavDropdown.Item href="/login" className="text-center">
+                  <NavDropdown.Item href="/schoollogin" className="text-center">
                     School
                   </NavDropdown.Item>
                 </NavDropdown>

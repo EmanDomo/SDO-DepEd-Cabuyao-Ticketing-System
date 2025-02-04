@@ -63,7 +63,7 @@ const SchoolLogin = () => {
         const decodedUser = jwtDecode(data.token);
         localStorage.setItem("user", JSON.stringify(decodedUser));
 
-        navigate("/ticketdashboard");
+        navigate("/schooldashboard");
       } else {
         const errorData = await response.json();
         setErrorMessage(errorData.message);
