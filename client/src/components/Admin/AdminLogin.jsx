@@ -4,7 +4,7 @@ import { Container, Form, Button, Card } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faUser, faLock } from "@fortawesome/free-solid-svg-icons";
 import { jwtDecode } from "jwt-decode";
-import '../../styles/Login.css';
+import '../../styles/AdminLogin.css';
 import Logo from "../../Assets/SDO_Logo.png";
 
 const Login = () => {
