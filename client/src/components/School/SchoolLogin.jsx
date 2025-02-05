@@ -4,7 +4,7 @@ import { Container, Form, Button, Card } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faUser, faLock } from "@fortawesome/free-solid-svg-icons";
 import { jwtDecode } from "jwt-decode";
-import Logo from "../../Assets/SDO_Logo.png";
+import Logo from "../../Assets/SDO_Logo1.png";
 import "../../styles/SchoolLogin.css";
 import InputGroup from "react-bootstrap/InputGroup";
 import { LuUser } from "react-icons/lu";
@@ -93,7 +93,8 @@ const SchoolLogin = () => {
     <div className="schoolLoginMain" id="school">
       <div className="schoolLogin mx-auto">
         <div className="schoolLogo text-center justify-content-center mx-auto">
-          <img alt="Logo" src={Logo} className="Logo-School-login mt-4" />
+          <h6 className="pt-3 text-light">School Login</h6>
+          <img alt="Logo" src={Logo} className="Logo-School-login mt-2" />
         </div>
         <div className="schoolInput p-2 mt-3">
           <Form ref={formRef} onSubmit={handleLogin}>
@@ -131,9 +132,9 @@ const SchoolLogin = () => {
                 onClick={togglePasswordVisibility}
               >
                 {showPassword ? (
-                  <FaRegEyeSlash className="fs-5" />
+                  <IoEyeOutline  className="fs-5" />
                 ) : (
-                  <IoEyeOutline className="fs-5" />
+                  <FaRegEyeSlash className="fs-5" />
                 )}
               </InputGroup.Text>
             </InputGroup>
@@ -149,7 +150,6 @@ const SchoolLogin = () => {
           </Button>
         </div>
       </div>
-
       {showModal && (
         <div className="modal-overlay">
           <div className="modal-content">
