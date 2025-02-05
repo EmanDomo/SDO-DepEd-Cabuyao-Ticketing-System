@@ -11,6 +11,7 @@ import { LuUser } from "react-icons/lu";
 import { GoLock } from "react-icons/go";
 import { IoEyeOutline } from "react-icons/io5";
 import { FaRegEyeSlash } from "react-icons/fa";
+import { useAuth } from "../Context/AuthContext";
 
 const SchoolLogin = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -21,27 +22,28 @@ const SchoolLogin = () => {
   const [retryAfter, setRetryAfter] = useState(null);
   const [countdown, setCountdown] = useState(null);
   const navigate = useNavigate();
+  const { login } = useAuth();
+
+  useEffect(() => {
+          let timer;
+          if (retryAfter !== null) {
+              setCountdown(retryAfter);
+              timer = setInterval(() => {
+                  setCountdown((prev) => {
+                      if (prev > 1) return prev - 1;
+                      clearInterval(timer);
+                      setRetryAfter(null);
+                      setRemainingAttempts(3);
+                      return 0;
+                  });
+              }, 1000);
+          }
+          return () => clearInterval(timer);
+      }, [retryAfter]);
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };
-
-  useEffect(() => {
-    let timer;
-    if (retryAfter !== null) {
-      setCountdown(retryAfter);
-      timer = setInterval(() => {
-        setCountdown((prev) => {
-          if (prev > 1) return prev - 1;
-          clearInterval(timer);
-          setRetryAfter(null);
-          setRemainingAttempts(3);
-          return 0;
-        });
-      }, 1000);
-    }
-    return () => clearInterval(timer);
-  }, [retryAfter]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -50,7 +52,7 @@ const SchoolLogin = () => {
     const password = formRef.current.password.value;
 
     try {
-      const response = await fetch("http://localhost:8080/login", {
+      const response = await fetch("http://localhost:8080/schoollogin", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
@@ -62,6 +64,9 @@ const SchoolLogin = () => {
 
         const decodedUser = jwtDecode(data.token);
         localStorage.setItem("user", JSON.stringify(decodedUser));
+
+        // Correct usage of data here
+        login(data.token);
 
         navigate("/schooldashboard");
       } else {
@@ -83,6 +88,7 @@ const SchoolLogin = () => {
       setShowModal(true);
     }
   };
+
   return (
     <div className="schoolLoginMain" id="school">
       <div className="schoolLogin mx-auto">

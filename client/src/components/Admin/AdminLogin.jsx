@@ -6,6 +6,7 @@ import { faUser, faLock } from "@fortawesome/free-solid-svg-icons";
 import { jwtDecode } from "jwt-decode";
 import '../../styles/AdminLogin.css';
 import Logo from "../../Assets/SDO_Logo.png";
+import { useAuth } from "../Context/AuthContext";
 
 const Login = () => {
     const formRef = useRef(null);
@@ -15,6 +16,7 @@ const Login = () => {
     const [retryAfter, setRetryAfter] = useState(null);
     const [countdown, setCountdown] = useState(null);
     const navigate = useNavigate();
+    const { login } = useAuth();
 
     useEffect(() => {
         let timer;
@@ -40,7 +42,7 @@ const Login = () => {
         const password = formRef.current.password.value;
 
         try {
-            const response = await fetch("http://localhost:8080/login", {
+            const response = await fetch("http://localhost:8080/adminlogin", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ username, password }),
@@ -52,6 +54,9 @@ const Login = () => {
 
                 const decodedUser = jwtDecode(data.token);
                 localStorage.setItem("user", JSON.stringify(decodedUser));
+
+                // Correct usage of data here
+                login(data.token);
 
                 navigate("/admindashboard");
             } else {

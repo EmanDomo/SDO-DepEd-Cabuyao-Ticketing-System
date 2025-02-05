@@ -1,16 +1,17 @@
 .schoolLogin {
     margin-top: 80px;
     width: 25%;
-    height: 65vh;
+    height: 70vh;
     border: none;
     box-shadow: 0 1px 8px rgba(0, 0, 0, 0.1);
     border-radius: 25px;
 }
 
 .schoolLogo {
-    height: 150px;
+    height: 180px;
     border-top-left-radius: 25px;
     border-top-right-radius: 25px;
+    background-color: #294a70;
     
 }
 
@@ -20,6 +21,7 @@
 
 .schoolInput {
     height: 150px;
+    margin-top: 50px !important;
 }
 
 .schoolInput-username, .schoolInput-password {
@@ -47,5 +49,5 @@
 }
 
 .schoolBtn {
-    margin-top: 90px;
+    margin-top: 50px;
 }
