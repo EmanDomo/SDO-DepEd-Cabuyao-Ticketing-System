@@ -25,21 +25,21 @@ const SchoolLogin = () => {
   const { login } = useAuth();
 
   useEffect(() => {
-          let timer;
-          if (retryAfter !== null) {
-              setCountdown(retryAfter);
-              timer = setInterval(() => {
-                  setCountdown((prev) => {
-                      if (prev > 1) return prev - 1;
-                      clearInterval(timer);
-                      setRetryAfter(null);
-                      setRemainingAttempts(3);
-                      return 0;
-                  });
-              }, 1000);
-          }
-          return () => clearInterval(timer);
-      }, [retryAfter]);
+    let timer;
+    if (retryAfter !== null) {
+      setCountdown(retryAfter);
+      timer = setInterval(() => {
+        setCountdown((prev) => {
+          if (prev > 1) return prev - 1;
+          clearInterval(timer);
+          setRetryAfter(null);
+          setRemainingAttempts(3);
+          return 0;
+        });
+      }, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [retryAfter]);
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
@@ -91,14 +91,17 @@ const SchoolLogin = () => {
 
   return (
     <div className="schoolLoginMain" id="school">
-      <div className="schoolLogin mx-auto">
-        <div className="schoolLogo text-center justify-content-center mx-auto">
-          <h6 className="pt-3 text-light">School Login</h6>
-          <img alt="Logo" src={Logo} className="Logo-School-login mt-2" />
-        </div>
-        <div className="schoolInput p-2 mt-3">
+      <Card className="schoolLogin mx-auto">
+        <Card.Header className="schoolHeader d-flex justify-content-center align-items-center">
+          <div className="text-center">
+            <h6 className="mb-4 text-light school-title">School Login</h6>
+            <img alt="Logo" src={Logo} className="schoolLogo mt-2" />
+          </div>
+        </Card.Header>
+
+        <Card.Body className="schoolInput pt-5">
           <Form ref={formRef} onSubmit={handleLogin}>
-            <InputGroup className="mb-5">
+            <InputGroup className="mb-5 schoolUsernameGroup">
               <InputGroup.Text id="basic-addon1" className="schoolIcon">
                 <LuUser className="fs-4" />
               </InputGroup.Text>
@@ -107,24 +110,24 @@ const SchoolLogin = () => {
                 placeholder="Username or School ID"
                 aria-label="Username"
                 aria-describedby="basic-addon1"
-                className="schoolInput-username"
+                className="schoolUsername"
               />
               <InputGroup.Text id="basic-addon1" className="schoolIconhidden">
                 @
               </InputGroup.Text>
             </InputGroup>
 
-            <InputGroup className="mb-3">
+            <InputGroup className="mb-3 schoolPasswordGroup">
               <InputGroup.Text id="basic-addon1" className="schoolIcon">
                 <GoLock className="fs-4" />
               </InputGroup.Text>
               <Form.Control
-                name="password" // Ensure the password field has a 'name' as well
+                name="password"
                 type={showPassword ? "text" : "password"}
                 placeholder="Enter password"
                 aria-label="Password"
                 aria-describedby="basic-addon1"
-                className="schoolInput-password"
+                className="schoolPassword"
                 required
               />
               <InputGroup.Text
@@ -132,15 +135,16 @@ const SchoolLogin = () => {
                 onClick={togglePasswordVisibility}
               >
                 {showPassword ? (
-                  <IoEyeOutline  className="fs-5" />
+                  <IoEyeOutline className="fs-5" />
                 ) : (
                   <FaRegEyeSlash className="fs-5" />
                 )}
               </InputGroup.Text>
             </InputGroup>
           </Form>
-        </div>
-        <div className="schoolBtn mx-auto text-center justify-content-center mx-auto">
+        </Card.Body>
+
+        <Card.Footer className="schoolBtn d-flex justify-content-center mb-3">
           <Button
             variant="dark"
             className="schoolLoginBtn"
@@ -148,8 +152,8 @@ const SchoolLogin = () => {
           >
             Login
           </Button>
-        </div>
-      </div>
+        </Card.Footer>
+      </Card>
       {showModal && (
         <div className="modal-overlay">
           <div className="modal-content">
@@ -175,6 +179,24 @@ const SchoolLogin = () => {
           </div>
         </div>
       )}
+      <svg
+        width="100%"
+        height="400"
+        id="svg"
+        viewBox="0 0 1440 490"
+        xmlns="http://www.w3.org/2000/svg"
+        preserveAspectRatio="xMidYMid slice"
+        className="svgg transition duration-300 ease-in-out delay-150"
+      >
+        <path
+          d="M 0,500 L 0,187 C 74.58373205741626,158.46411483253587 149.1674641148325,129.92822966507177 247,121 C 344.8325358851675,112.07177033492823 465.9138755980862,122.7511961722488 560,142 C 654.0861244019138,161.2488038277512 721.1770334928229,189.06698564593302 828,193 C 934.8229665071771,196.93301435406698 1081.377990430622,176.98086124401914 1190,172 C 1298.622009569378,167.01913875598086 1369.311004784689,177.00956937799043 1440,187 L 1440,500 L 0,500 Z"
+          stroke="none"
+          strokeWidth="0"
+          fill="#294a70"
+          fillOpacity="1"
+          className="transition-all duration-300 ease-in-out delay-150 path-0"
+        ></path>
+      </svg>
     </div>
   );
 };

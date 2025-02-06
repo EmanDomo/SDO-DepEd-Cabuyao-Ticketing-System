@@ -58,6 +58,7 @@ const LandingPage = () => {
       {/* Main Content Section */}
       <div className="row maincontent p-0 mx-2">
         <div className="col-lg-8">
+
           {/* Video Section */}
           <div className="row">
             <iframe
@@ -244,7 +245,6 @@ const LandingPage = () => {
                   </Carousel.Caption>
                 </Carousel.Item>
               </Carousel>
-
               <p className="text-center mt-3">
                 Lorem ipsum odor amet, consectetuer adipiscing elit. Posuere
                 lacus vivamus tempor mauris imperdiet hendrerit tempus. Quis
