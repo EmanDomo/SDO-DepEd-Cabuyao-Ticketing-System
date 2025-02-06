@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 import { useAuth } from "../Context/AuthContext";
 
+
+
 const AdminDashboard = () => {
     const navigate = useNavigate();
     const [firstName, setFirstName] = useState(null);
@@ -32,6 +34,9 @@ const AdminDashboard = () => {
         navigate("/");
     };
 
+   
+       
+
     return (
         <div>
             {lastName && firstName ? (
@@ -43,6 +48,9 @@ const AdminDashboard = () => {
                 <p>Loading...</p>
             )}
         </div>
+
+ 
+       
     );
 };
 

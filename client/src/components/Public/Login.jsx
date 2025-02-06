@@ -94,6 +94,7 @@ const Login = () => {
 
   return (
     <div className="schoolLoginMain" id="school">
+      
       <Card className="schoolLogin mx-auto">
         <Card.Header className="schoolHeader d-flex justify-content-center align-items-center">
           <div className="text-center">
@@ -190,7 +191,7 @@ const Login = () => {
           </Modal.Footer>
         </Modal>
       )}
-
+{/* 
       <svg
         width="100%"
         height="400"
@@ -208,7 +209,7 @@ const Login = () => {
           fillOpacity="1"
           className="transition-all duration-300 ease-in-out delay-150 path-0"
         ></path>
-      </svg>
+      </svg> */}
     </div>
   );
 };

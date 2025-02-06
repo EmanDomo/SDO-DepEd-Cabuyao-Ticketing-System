@@ -26,11 +26,11 @@ function App() {
           <Route path='/' element={<Login />} />
           <Route
             path='/schooldashboard'
-            element={<ProtectedRoute allowedRoles={['school']}><SchoolDashboard /></ProtectedRoute>}
+            element={<ProtectedRoute allowedRoles={['School']}><SchoolDashboard /></ProtectedRoute>}
           />
           <Route
             path='/admindashboard'
-            element={<ProtectedRoute allowedRoles={['admin']}><AdminDashboard /></ProtectedRoute>}
+            element={<ProtectedRoute allowedRoles={['Admin']}><AdminDashboard /></ProtectedRoute>}
           />
           <Route path="/forbidden" element={<Forbidden />} />
           <Route path="*" element={<NotFound />} />

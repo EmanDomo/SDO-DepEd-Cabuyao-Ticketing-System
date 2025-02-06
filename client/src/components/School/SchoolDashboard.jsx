@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 import { useAuth } from "../Context/AuthContext"
+import Nav from "./Header";
 
 const SchoolDashboard = () => {
     const navigate = useNavigate();
@@ -32,8 +33,10 @@ const SchoolDashboard = () => {
 
     return (
         <div>
+            <Nav/>
             {school ? (
                 <>
+                    <Nav/>
                     <h1>Welcome, {school}!</h1>
                     <button onClick={handleLogout}>Logout</button>
                 </>
