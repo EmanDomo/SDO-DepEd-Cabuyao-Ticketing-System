@@ -9,25 +9,21 @@ import ProtectedRoute from "./components/Context/ProtectedRoutes";
 
 // School
 import SchoolDashboard from './components/School/SchoolDashboard';
-import SchoolLogin from './components/School/SchoolLogin';
 
 // Admin
 import AdminDashboard from './components/Admin/AdminDashboard';
-import AdminLogin from './components/Admin/AdminLogin';
 
 // Public
 import Forbidden from "./components/Public/Forbidden";
 import NotFound from "./components/Public/NotFound";
-import LandingPage from './components/Public/LandingPage';
+import Login from './components/Public/Login';
 
 function App() {
   return (
     <AuthProvider>
       <Router>
         <Routes>
-          <Route path='/' element={<LandingPage />} />
-          <Route path='/adminlogin' element={<AdminLogin />} />
-          <Route path='/schoollogin' element={<SchoolLogin />} />
+          <Route path='/' element={<Login />} />
           <Route
             path='/schooldashboard'
             element={<ProtectedRoute allowedRoles={['school']}><SchoolDashboard /></ProtectedRoute>}

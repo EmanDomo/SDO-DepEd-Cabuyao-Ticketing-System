@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
-import { useAuth } from "../Context/AuthContext"; // Make sure this import is correct
+import { useAuth } from "../Context/AuthContext";
 
 const AdminDashboard = () => {
     const navigate = useNavigate();
-    const [admin, setAdmin] = useState(null);
+    const [firstName, setFirstName] = useState(null);
+    const [lastName, setLastName] = useState(null);
     const { logout } = useAuth();
 
     useEffect(() => {
@@ -18,7 +19,8 @@ const AdminDashboard = () => {
 
         try {
             const decoded = jwtDecode(token);
-            setAdmin(decoded.adminName); // Get the admin name from the decoded token
+            setLastName(decoded.lastname);
+            setFirstName(decoded.firstname);
         } catch (error) {
             console.error("Invalid token:", error);
             navigate("/forbidden");
@@ -32,9 +34,9 @@ const AdminDashboard = () => {
 
     return (
         <div>
-            {admin ? (
+            {lastName && firstName ? (
                 <>
-                    <h1>Welcome, {admin}!</h1>
+                    <h1>Welcome! {lastName}, {firstName}</h1>
                     <button onClick={handleLogout}>Logout</button>
                 </>
             ) : (

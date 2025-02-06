@@ -1,19 +1,18 @@
 import React, { useRef, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Container, Form, Button, Card } from "react-bootstrap";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faUser, faLock } from "@fortawesome/free-solid-svg-icons";
 import { jwtDecode } from "jwt-decode";
 import Logo from "../../Assets/SDO_Logo1.png";
-import "../../styles/SchoolLogin.css";
+import "../../styles/Login.css";
 import InputGroup from "react-bootstrap/InputGroup";
 import { LuUser } from "react-icons/lu";
 import { GoLock } from "react-icons/go";
 import { IoEyeOutline } from "react-icons/io5";
 import { FaRegEyeSlash } from "react-icons/fa";
 import { useAuth } from "../Context/AuthContext";
+import Modal from 'react-bootstrap/Modal';
 
-const SchoolLogin = () => {
+const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const formRef = useRef(null);
   const [errorMessage, setErrorMessage] = useState("");
@@ -52,7 +51,7 @@ const SchoolLogin = () => {
     const password = formRef.current.password.value;
 
     try {
-      const response = await fetch("http://localhost:8080/schoollogin", {
+      const response = await fetch("http://localhost:8080/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
@@ -68,7 +67,11 @@ const SchoolLogin = () => {
         // Correct usage of data here
         login(data.token);
 
-        navigate("/schooldashboard");
+        if (decodedUser.role === "admin") {
+          navigate("/admindashboard");
+        } else {
+          navigate("/schooldashboard");
+        }
       } else {
         const errorData = await response.json();
         setErrorMessage(errorData.message);
@@ -94,7 +97,7 @@ const SchoolLogin = () => {
       <Card className="schoolLogin mx-auto">
         <Card.Header className="schoolHeader d-flex justify-content-center align-items-center">
           <div className="text-center">
-            <h6 className="mb-4 text-light school-title">School Login</h6>
+            <h6 className="mb-4 text-light school-title">Login</h6>
             <img alt="Logo" src={Logo} className="schoolLogo mt-2" />
           </div>
         </Card.Header>
@@ -106,7 +109,7 @@ const SchoolLogin = () => {
                 <LuUser className="fs-4" />
               </InputGroup.Text>
               <Form.Control
-                name="username" // Make sure to add the 'name' attribute
+                name="username"
                 placeholder="Username or School ID"
                 aria-label="Username"
                 aria-describedby="basic-addon1"
@@ -154,31 +157,40 @@ const SchoolLogin = () => {
           </Button>
         </Card.Footer>
       </Card>
+
+      {/* Modal for login error */}
       {showModal && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h4 className="modal-title">Login Error</h4>
-            </div>
-            <div className="modal-body">
-              <p>{errorMessage}</p>
-              {remainingAttempts !== null &&
-                remainingAttempts > 0 &&
-                retryAfter === null && (
-                  <p>You have {remainingAttempts} attempt(s) left.</p>
-                )}
-              {retryAfter !== null && countdown > 0 && (
-                <p>
-                  You can try again in <strong>{countdown}</strong> seconds.
-                </p>
-              )}
-            </div>
-            <div className="modal-footer">
-              <button onClick={() => setShowModal(false)}>Close</button>
-            </div>
-          </div>
-        </div>
+        <Modal
+          show={showModal}
+          onHide={() => setShowModal(false)}
+          size="sm"
+          aria-labelledby="contained-modal-title-vcenter"
+          centered
+        >
+          <Modal.Header closeButton>
+            <Modal.Title id="contained-modal-title-vcenter">
+              Login Error
+            </Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <p>{errorMessage}</p>
+            {remainingAttempts !== null && remainingAttempts > 0 && retryAfter === null && (
+              <p>You have {remainingAttempts} attempt(s) left.</p>
+            )}
+            {retryAfter !== null && countdown > 0 && (
+              <p>
+                You can try again in <strong>{countdown}</strong> seconds.
+              </p>
+            )}
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="secondary" onClick={() => setShowModal(false)}>
+              Close
+            </Button>
+          </Modal.Footer>
+        </Modal>
       )}
+
       <svg
         width="100%"
         height="400"
@@ -201,4 +213,4 @@ const SchoolLogin = () => {
   );
 };
 
-export default SchoolLogin;
+export default Login;

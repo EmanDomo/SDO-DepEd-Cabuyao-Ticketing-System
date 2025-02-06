@@ -10,7 +10,8 @@ export const AuthProvider = ({ children }) => {
         if (token) {
             try {
                 const decodedUser = JSON.parse(atob(token.split('.')[1])); // Decode JWT
-                setUser(decodedUser);
+                console.log(decodedUser);  // Verify the decoded token structure
+                setUser(decodedUser);  // Set user from decoded token
             } catch (error) {
                 console.error("Invalid token");
                 localStorage.removeItem("token");
@@ -20,8 +21,8 @@ export const AuthProvider = ({ children }) => {
 
     const login = (token) => {
         localStorage.setItem("token", token);
-        const decodedUser = JSON.parse(atob(token.split('.')[1]));
-        setUser(decodedUser);
+        const decodedUser = JSON.parse(atob(token.split('.')[1]));  // Decode JWT
+        setUser(decodedUser);  // Set the user from the decoded JWT
     };
 
     const logout = () => {
