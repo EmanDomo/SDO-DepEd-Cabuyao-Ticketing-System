@@ -36,7 +36,6 @@ const Navbar = () => {
   };
   return (
     <div className="p-3 m-0 border-0 bd-example m-0 border-0">
-      {/* Example Code */}
       <nav className="navbar navbar-dark bg-dark fixed-top">
         <div className="container-fluid">
           <a className="navbar-brand ps-lg-3 ps-sm-0" href="#">
@@ -129,7 +128,6 @@ const Navbar = () => {
           </div>
         </div>
       </nav>
-      {/* End Example Code */}
     </div>
   );
 };

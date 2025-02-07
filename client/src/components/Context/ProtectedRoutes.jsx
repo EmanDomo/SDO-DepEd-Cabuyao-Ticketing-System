@@ -15,7 +15,7 @@
 //     }
 
 //     return children;
-// };
+// }; 
 
 // export default ProtectedRoute;
 

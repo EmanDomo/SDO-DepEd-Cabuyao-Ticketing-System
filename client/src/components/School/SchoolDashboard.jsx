@@ -19,7 +19,7 @@ const SchoolDashboard = () => {
 
         try {
             const decoded = jwtDecode(token);
-            setSchool(decoded.school); // Get the school name from the decoded token
+            setSchool(decoded.school); token
         } catch (error) {
             console.error("Invalid token:", error);
             navigate("/forbidden");
@@ -31,6 +31,12 @@ const SchoolDashboard = () => {
         navigate("/");
     };
 
+
+    //try lang to gab kung mawawala yung token kapag nag next page ako
+    const navigateToCreateTicket = () => {
+        navigate("/createticket");
+    };
+
     return (
         <div>
             <Nav/>
@@ -39,6 +45,7 @@ const SchoolDashboard = () => {
                     <Nav/>
                     <h1>Welcome, {school}!</h1>
                     <button onClick={handleLogout}>Logout</button>
+                    <button onClick={navigateToCreateTicket}>Go to Create Ticket</button>
                 </>
             ) : (
                 <p>Loading...</p>

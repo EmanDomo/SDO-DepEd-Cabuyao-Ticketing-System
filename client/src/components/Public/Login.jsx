@@ -67,7 +67,7 @@ const Login = () => {
         // Correct usage of data here
         login(data.token);
 
-        if (decodedUser.role === "admin") {
+        if (decodedUser.role === "Admin") {
           navigate("/admindashboard");
         } else {
           navigate("/schooldashboard");

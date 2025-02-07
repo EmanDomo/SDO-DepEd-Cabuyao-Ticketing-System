@@ -9,6 +9,7 @@ import ProtectedRoute from "./components/Context/ProtectedRoutes";
 
 // School
 import SchoolDashboard from './components/School/SchoolDashboard';
+import CreateTicket from "./components/School/CreateTicket";
 
 // Admin
 import AdminDashboard from './components/Admin/AdminDashboard';
@@ -26,7 +27,15 @@ function App() {
           <Route path='/' element={<Login />} />
           <Route
             path='/schooldashboard'
-            element={<ProtectedRoute allowedRoles={['School']}><SchoolDashboard /></ProtectedRoute>}
+            element={<ProtectedRoute allowedRoles={['Staff']}><SchoolDashboard /></ProtectedRoute>}
+          />
+          <Route
+            path="/createticket"
+            element={
+              <ProtectedRoute allowedRoles={['Staff']}>
+                <CreateTicket />
+              </ProtectedRoute>
+            }
           />
           <Route
             path='/admindashboard'
