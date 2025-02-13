@@ -5,11 +5,14 @@ import { useAuth } from "../Context/AuthContext";
 import Badge from "react-bootstrap/Badge";
 import { Offcanvas } from "react-bootstrap";
 import { useWindowSize } from "react-use";
-import SidebarLogo from "../../Assets/sidebar-logo.png";
-import { MdOutlineSpaceDashboard } from "react-icons/md";
+import Logo from "../../Assets/SDO_Logo1.png";
+import { 
+  MdOutlineSpaceDashboard, 
+  MdKeyboardArrowDown 
+} from "react-icons/md";
 import { LuTickets } from "react-icons/lu";
-import { MdOutlineEmail } from "react-icons/md";
-import { FiUnlock } from "react-icons/fi";
+import { FaRegListAlt } from "react-icons/fa";
+import { FaRegUser } from "react-icons/fa";
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -17,14 +20,14 @@ const Navbar = () => {
   const [username, setUsername] = useState(null);
   const [role, setRole] = useState(null);
   const { logout } = useAuth();
-
   const { width } = useWindowSize();
-
   const [showSidebar, setShowSidebar] = useState(false);
-
-  // Ref for the Offcanvas content
+  const [showDropdown, setShowDropdown] = useState(false);
+  const dropdownRef = useRef(null);
   const offcanvasContentRef = useRef(null);
+  const sidebarRef = useRef(null);
 
+  // Token validation and user data setup
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) {
@@ -42,131 +45,202 @@ const Navbar = () => {
     }
   }, [navigate]);
 
+  // Handle click outside sidebar on mobile
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (width < 768 && showSidebar && 
+          sidebarRef.current && 
+          !sidebarRef.current.contains(event.target)) {
+        setShowSidebar(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showSidebar, width]);
+
+  // Handle window resize
+  useEffect(() => {
+    const handleResize = () => {
+      if (width >= 768) {
+        setShowSidebar(true);
+      } else {
+        setShowSidebar(false);
+      }
+    };
+
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [width]);
+
   const handleLogout = () => {
     logout();
     navigate("/");
   };
 
-  const handleToggleOffcanvas = () => {
-    setShowSidebar(!showSidebar);
+  const toggleDropdown = () => {
+    setShowDropdown(!showDropdown);
   };
 
-  // Close the sidebar if click is outside the sidebar on small screens
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (
-        offcanvasContentRef.current &&
-        !offcanvasContentRef.current.contains(event.target)
-      ) {
-        setShowSidebar(false);
-      }
-    };
+  const SidebarContent = () => (
+    <div className="d-flex flex-column h-100" ref={sidebarRef}>
+      {/* Header */}
+      <div className="sidebar-header">
+        <div className="d-flex">
+      <img
+            alt="Logo"
+            src={Logo}
+            className="schoolLogo"
+            style={{width: '40px'}}
+          />
+        <h5 className="mt-2 ms-2">SDO Cabuyao</h5>
+        </div>
+        <div className="">
+          <FaRegUser className="m-auto mt-4 my-2" style={{fontSize: '60px'}}/>
+          <p className="text-secondary text-center mt-4 fs-6">
+            Deped Ticketing System
+          </p>
+        </div>
+      </div>
 
-    if (width < 768 && showSidebar) {
-      document.addEventListener("mousedown", handleClickOutside);
-    } else {
-      document.removeEventListener("mousedown", handleClickOutside);
-    }
+      {/* Navigation Items */}
+      <div className="flex-grow-1">
+        <div className="nav flex-column">
+          <a 
+            href="/schooldashboard" 
+            className="nav-link text-dark d-flex align-items-center py-1 px-2 hover-effect"
+          >
+            <MdOutlineSpaceDashboard className="me-3 fs-5" />
+            Dashboard
+          </a>
+          <a 
+            href="/ticket" 
+            className="nav-link text-dark d-flex align-items-center py-3 px-2 hover-effect"
+          >
+            <LuTickets className="me-3 fs-5" />
+            Ticket Request
+          </a>
 
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [showSidebar, width]);
+          {/* Dropdown Menu */}
+          <div className="nav-item">
+            <button
+              className="nav-link text-dark d-flex align-items-center justify-content-between w-100 py-3 px-2 border-0 bg-transparent"
+              onClick={toggleDropdown}
+              style={{ cursor: 'pointer' }}
+            >
+              <div className="d-flex align-items-center">
+                <FaRegListAlt className="me-3 fs-5" />
+                Ticket Management
+              </div>
+              <MdKeyboardArrowDown 
+                className={`fs-5 transition-transform ${showDropdown ? 'rotate-180' : ''}`}
+                style={{ transition: 'transform 0.3s ease' }}
+              />
+            </button>
+            <div 
+              ref={dropdownRef}
+              className="dropdown-menu-custom"
+              style={{
+                maxHeight: showDropdown ? '1000px' : '0',
+                opacity: showDropdown ? 1 : 0,
+                transition: 'all 0.3s ease-in-out',
+                overflow: 'hidden'
+              }}
+            >
+              <a href="/ticket" className="nav-link text-dark py-2 px-4 dropdown-item hover-effect">
+                Pending 
+              </a>
+              <a href="/createticket" className="nav-link text-dark py-2 px-4 dropdown-item hover-effect">
+                Completed 
+              </a>
+              <a href="#" className="nav-link text-dark py-2 px-4 dropdown-item hover-effect">
+                Rejected
+              </a>
+              <a href="/createticket" className="nav-link text-dark py-2 px-4 dropdown-item hover-effect">
+                In progress 
+              </a>
+              <a href="#" className="nav-link text-dark py-2 px-4 dropdown-item hover-effect">
+                On Hold
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
 
-  const navigateToCreateTicket = () => {
-    navigate("/createticket");
-  };
-
+      {/* Footer */}
+      <div className="mt-auto border-top pt-3">
+        <div className="d-flex align-items-center mb-3">
+          <div className="me-2">
+            <small className="text-muted">Logged in as:</small>
+            <div className="fw-bold">{school}</div>
+          </div>
+        </div>
+        <button
+          className="btn btn-dark w-100 logout-btn"
+          onClick={handleLogout}
+          style={{ backgroundColor: "#294a70" }}
+        >
+          Logout
+        </button>
+      </div>
+    </div>
+  );
 
   return (
-    <div className="p-3 m-0 border-0 bd-example m-0 border-0">
-      {/* Sidebar on large screens */}
+    <>
+      <style>
+        {`
+          .hover-effect {
+            transition: all 0.2s ease-in-out;
+          }
+          
+          .hover-effect:hover {
+            background-color: rgba(41, 74, 112, 0.1);
+            border-radius: 4px;
+          }
+
+          .rotate-180 {
+            transform: rotate(180deg);
+          }
+
+          .transition-transform {
+            transition: transform 0.8s ease;
+          }
+
+          .dropdown-menu-custom {
+            margin-left: 2rem;
+          }
+
+          .logout-btn:hover {
+            background-color: #1c3655 !important;
+          }
+
+          @media (min-width: 768px) {
+            .main-content {
+              margin-left: 250px;
+            }
+          }
+        `}
+      </style>
+
+      {/* Desktop Sidebar */}
       {width >= 768 && (
         <div
-          className="sidebar d-flex flex-column position-fixed"
+          className="sidebar position-fixed bg-white"
           style={{
-            top: "0",
-            left: "0",
+            top: 0,
+            left: 0,
             width: "250px",
             height: "100vh",
             padding: "15px",
             color: "#294a70",
             zIndex: 1000,
             boxShadow: "4px 0 8px rgba(0, 0, 0, 0.1)",
+            overflowY: "auto"
           }}
         >
-          <div>
-            <h5>SDO Cabuyao</h5>
-          </div>
-          <div className="my-3">
-            <img
-              alt="Logo"
-              src={SidebarLogo}
-              className="schoolLogo mt-2"
-              style={{ width: "100%", height: "40px" }}
-            />
-            <p className="text-secondary text-center mt-2 fs-6 mt-2">
-              Deped Ticketing System
-            </p>
-          </div>
-          <div>
-            <table style={{ width: "100%" }}>
-              <thead>
-                <tr><th></th><th></th></tr>
-              </thead>
-              <tbody>
-                <tr style={{ height: "50px" }}>
-                  <td>
-                    <MdOutlineSpaceDashboard className="fs-5 text-dark" />
-                  </td>
-                  <td>
-                    <a href="/schooldashboard" className="text-dark" style={{ textDecoration: "none" }}>
-                      Dashboard
-                    </a>
-                  </td>
-                </tr>
-                <tr style={{ height: "50px" }}>
-                  <td>
-                    <LuTickets className="fs-5 text-dark" />
-                  </td>
-                  <td>
-                    <a href="/ticket" className="text-dark" style={{ textDecoration: "none" }}>
-                      Ticket Request
-                    </a>
-                  </td>
-                </tr>
-                <tr style={{ height: "50px" }}>
-                  <td>
-                    <MdOutlineEmail className="fs-5 text-dark" />
-                  </td>
-                  <td>
-                    <a href="/createticket" className="text-dark" style={{ textDecoration: "none" }}>
-                      Email Request
-                    </a>
-                  </td>
-                </tr>
-                <tr style={{ height: "50px" }}>
-                  <td>
-                    <FiUnlock className="fs-5 text-dark" />
-                  </td>
-                  <td>
-                    <a href="#" className="text-dark" style={{ textDecoration: "none" }}>
-                      IDAS Reset Password
-                    </a>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-          <div>
-            <button
-              className="btn btn-dark"
-              onClick={handleLogout}
-              style={{ width: "100%", backgroundColor: "#294a70", marginTop: "130%" }}
-            >
-              Logout
-            </button>
-          </div>
+          <SidebarContent />
         </div>
       )}
 
@@ -177,114 +251,50 @@ const Navbar = () => {
           backgroundColor: "#294a70",
           marginLeft: width >= 768 ? "250px" : "0",
           zIndex: 500,
+          transition: "margin-left 0.3s ease-in-out"
         }}
       >
-        <div className="container-fluid d-flex flex-row">
-          <a className="navbar-brand ps-lg-3 ps-sm-0" href="#">
-            <b className="d-none d-lg-inline">{school}</b>{" "}
-            <span className="fs-6 ms-lg-4 ms-0 d-lg-inline">
-              <i>School ID: {username}</i>
-              <Badge bg="light" className="ms-3" style={{ color: "#294a70" }}>
-                {role}
-              </Badge>
-            </span>
-          </a>
-          <button
-            className="navbar-toggler d-lg-none"
-            type="button"
-            onClick={handleToggleOffcanvas}
-            aria-label="Toggle navigation"
-          >
-            <span className="navbar-toggler-icon"></span>
-          </button>
+        <div className="container-fluid">
+          <div className="d-flex align-items-center">
+            {width < 768 && (
+              <button
+                className="navbar-toggler me-2"
+                type="button"
+                onClick={() => setShowSidebar(!showSidebar)}
+              >
+                <span className="navbar-toggler-icon"></span>
+              </button>
+            )}
+            <a className="navbar-brand" href="#">
+              <b className="d-none d-lg-inline">{school}</b>
+              <span className="fs-6 ms-lg-4 ms-0 d-lg-inline">
+                <i>School ID: {username}</i>
+                <Badge bg="light" className="ms-3" style={{ color: "#294a70" }}>
+                  {role}
+                </Badge>
+              </span>
+            </a>
+          </div>
         </div>
       </nav>
 
-      {/* Sidebar (Offcanvas) for small screens */}
+      {/* Mobile Sidebar */}
       <Offcanvas
         show={showSidebar && width < 768}
         onHide={() => setShowSidebar(false)}
         placement="start"
-        backdrop={false}
-        style={{ width: "75%", boxShadow: "4px 0 8px rgba(0, 0, 0, 0.1)", border: "none" }}
+        backdrop={true}
+        style={{ 
+          width: "250px", 
+          boxShadow: "4px 0 8px rgba(0, 0, 0, 0.1)",
+          border: "none"
+        }}
       >
-        <Offcanvas.Body ref={offcanvasContentRef}>
-          <div>
-            <h5>SDO Cabuyao</h5>
-          </div>
-          <div className="my-3">
-            <img
-              alt="Logo"
-              src={SidebarLogo}
-              className="schoolLogo mt-2"
-              style={{ width: "100%", height: "40px" }}
-            />
-            <p className="text-secondary text-center mt-2 fs-6 mt-2">
-              Deped Ticketing System
-            </p>
-          </div>
-          <div>
-            <table style={{ width: "100%" }}>
-              <thead>
-                <tr><th></th><th></th></tr>
-              </thead>
-              <tbody>
-                <tr style={{ height: "50px" }}>
-                  <td>
-                    <MdOutlineSpaceDashboard className="fs-5 text-dark" />
-                  </td>
-                  <td>
-                    <a href="#" className="text-dark" style={{ textDecoration: "none" }}>
-                      Dashboard
-                    </a>
-                  </td>
-                </tr>
-                <tr style={{ height: "50px" }}>
-                  <td>
-                    <LuTickets className="fs-5 text-dark" />
-                  </td>
-                  <td>
-                    <a href="#" className="text-dark" style={{ textDecoration: "none" }}>
-                      Ticket Request
-                    </a>
-                  </td>
-                </tr>
-                <tr style={{ height: "50px" }}>
-                  <td>
-                    <MdOutlineEmail className="fs-5 text-dark" />
-                  </td>
-                  <td>
-                    <a href="#" className="text-dark" style={{ textDecoration: "none" }}>
-                      Email Request
-                    </a>
-                  </td>
-                </tr>
-                <tr style={{ height: "50px" }}>
-                  <td>
-                    <FiUnlock className="fs-5 text-dark" />
-                  </td>
-                  <td>
-                    <a href="#" className="text-dark" style={{ textDecoration: "none" }}>
-                      IDAS Reset Password
-                    </a>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <div>
-            <button
-              className="btn btn-dark"
-              onClick={handleLogout}
-              style={{ width: "100%", backgroundColor: "#294a70", marginTop: "40vh" }}
-            >
-              Logout
-            </button>
-          </div>
+        <Offcanvas.Body className="">
+          <SidebarContent />
         </Offcanvas.Body>
       </Offcanvas>
-    </div>
+    </>
   );
 };
 

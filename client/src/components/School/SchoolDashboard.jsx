@@ -61,13 +61,14 @@ const SchoolDashboard = () => {
       <Nav />
       {school ? (
         <>
-          <div className="">
-            <img
+          <div className="mb-5 mt-3">
+            <h3 style={{ color: "#294a70" }}>Dashboard</h3>
+            {/* <img
               alt="Logo"
               src={SidebarLogo}
               className="schoolLogo m-auto mb-5"
               style={{ width: "60%", height: "100px" }}
-            />
+            /> */}
           </div>
 
           {/* Row to display cards */}

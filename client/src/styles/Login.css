@@ -57,6 +57,7 @@
  width: 75%;
  border-radius: 20px;
  background-color: #294a70;
+ color: #294a708e;
 }
 
 @media (min-width: 344px) and (max-width: 767px) {

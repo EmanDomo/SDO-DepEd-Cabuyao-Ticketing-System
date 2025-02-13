@@ -70,6 +70,10 @@ const AdminDashboard = () => {
         navigate("/");
     };
 
+    const handleCreateBatch = () => {
+        navigate("/batchcreate");
+    };
+
     const handleOpenAttachment = (attachments) => {
         try {
             const parsedAttachments = JSON.parse(attachments);
@@ -127,6 +131,7 @@ const AdminDashboard = () => {
                         <h4 className="mb-0">Welcome, {firstName} {lastName}</h4>
                     </div>
                     <Button variant="outline-danger" onClick={handleLogout}>Logout</Button>
+                    <Button variant="dark" onClick={handleCreateBatch}>Create Batch</Button>
                 </Card.Header>
             </Card>
 

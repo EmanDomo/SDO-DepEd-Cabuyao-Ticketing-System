@@ -24,7 +24,7 @@ const fileFilter = (req, file, cb) => {
         'application/vnd.ms-excel',
         'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     ];
-    
+
     if (allowedTypes.includes(file.mimetype)) {
         cb(null, true);
     } else {
@@ -32,7 +32,7 @@ const fileFilter = (req, file, cb) => {
     }
 };
 
-const upload = multer({ 
+const upload = multer({
     storage,
     fileFilter,
     limits: {
@@ -51,8 +51,36 @@ router.get("/tickets", (req, res) => {
     });
 });
 
+router.get('/schoolbatches', (req, res) => {
+    const query = `
+        SELECT 
+            b.batch_id,
+            b.batch_number,
+            b.send_date,
+            b.schoolCode,
+            b.school_name,
+            d.device_type,
+            d.device_number,
+            b.status,
+            b.received_date
+        FROM tbl_batches b
+        LEFT JOIN tbl_batch_devices d ON b.batch_id = d.batch_id 
+        ORDER BY b.batch_number;
+    `;
+
+    conn.query(query, (err, result) => {
+        if (err) {
+            console.error('Error fetching batches:', err.message);
+            return res.status(500).json({ error: err.message });
+        }
+        console.log('Fetched batches:', result);
+        res.json(result);
+    });
+});
+
+
 router.post("/createTickets", (req, res) => {
-    upload(req, res, function(err) {
+    upload(req, res, function (err) {
         if (err instanceof multer.MulterError) {
             return res.status(400).json({ error: "File upload error: " + err.message });
         } else if (err) {
@@ -62,7 +90,7 @@ router.post("/createTickets", (req, res) => {
         const { requestor, category, request, comments, status } = req.body;
         const attachments = req.files ? req.files.map(file => file.filename) : [];
         const ticketNumber = `TKT-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-        
+
         // Validate required fields
         if (!requestor || !category || !request) {
             return res.status(400).json({ error: "Missing required fields" });
@@ -82,8 +110,8 @@ router.post("/createTickets", (req, res) => {
                     console.error("Database error:", err);
                     return res.status(500).json({ error: "Failed to create ticket" });
                 }
-                res.json({ 
-                    message: "Ticket submitted successfully", 
+                res.json({
+                    message: "Ticket submitted successfully",
                     ticketNumber,
                     ticketId: result.insertId
                 });
@@ -97,7 +125,7 @@ router.post("/createTickets", (req, res) => {
 router.put("/tickets/:ticketId/status", (req, res) => {
     const { ticketId } = req.params;
     const { status } = req.body;
-    
+
     if (!["In Progress", "Closed"].includes(status)) {
         return res.status(400).json({ error: "Invalid status" });
     }
@@ -114,11 +142,11 @@ router.put("/tickets/:ticketId/status", (req, res) => {
             console.error("Database error:", err);
             return res.status(500).json({ error: "Failed to update ticket status" });
         }
-        
+
         if (result.affectedRows === 0) {
             return res.status(404).json({ error: "Ticket not found" });
         }
-        
+
         res.json({ message: "Ticket status updated successfully" });
     });
 });

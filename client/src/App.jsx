@@ -17,6 +17,8 @@ import ResetPassword from "./components/School/ResetPassword";
 import AdminDashboard from "./components/Admin/AdminDashboard";
 import CreateBatch from './components/Admin/CreateBatch';
 import PasswordRequests from "./components/Admin/PasswordRequests";
+import BatchCreate from "./components/Admin/BatchCreate";
+import Batches from "./components/Admin/Batches";
 
 // Public
 import Forbidden from "./components/Public/Forbidden";
@@ -66,6 +68,22 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={["Admin"]}>
                 <AdminDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/batchcreate"
+            element={
+              <ProtectedRoute allowedRoles={["Admin"]}>
+                <BatchCreate />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/batches"
+            element={
+              <ProtectedRoute allowedRoles={["Admin"]}>
+                <Batches />
               </ProtectedRoute>
             }
           />
