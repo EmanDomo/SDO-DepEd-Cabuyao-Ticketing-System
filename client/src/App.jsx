@@ -1,45 +1,62 @@
-import './App.css';
-import React from 'react';
+import "./App.css";
+import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import 'bootstrap/dist/css/bootstrap.min.css';
+import "bootstrap/dist/css/bootstrap.min.css";
 
 // Context
 import { AuthProvider } from "./components/Context/AuthContext";
 import ProtectedRoute from "./components/Context/ProtectedRoutes";
 
 // School
-import SchoolDashboard from './components/School/SchoolDashboard';
+import SchoolDashboard from "./components/School/SchoolDashboard";
 import CreateTicket from "./components/School/CreateTicket";
+import Ticket from "./components/School/Ticket";
 
 // Admin
-import AdminDashboard from './components/Admin/AdminDashboard';
+import AdminDashboard from "./components/Admin/AdminDashboard";
 
 // Public
 import Forbidden from "./components/Public/Forbidden";
 import NotFound from "./components/Public/NotFound";
-import Login from './components/Public/Login';
+import Login from "./components/Public/Login";
 
 function App() {
   return (
     <AuthProvider>
       <Router>
         <Routes>
-          <Route path='/' element={<Login />} />
+          <Route path="/" element={<Login />} />
           <Route
-            path='/schooldashboard'
-            element={<ProtectedRoute allowedRoles={['Staff']}><SchoolDashboard /></ProtectedRoute>}
+            path="/schooldashboard"
+            element={
+              <ProtectedRoute allowedRoles={["Staff"]}>
+                <SchoolDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/ticket"
+            element={
+              <ProtectedRoute allowedRoles={["Staff"]}>
+                <Ticket />
+              </ProtectedRoute>
+            }
           />
           <Route
             path="/createticket"
             element={
-              <ProtectedRoute allowedRoles={['Staff']}>
+              <ProtectedRoute allowedRoles={["Staff"]}>
                 <CreateTicket />
               </ProtectedRoute>
             }
           />
           <Route
-            path='/admindashboard'
-            element={<ProtectedRoute allowedRoles={['Admin']}><AdminDashboard /></ProtectedRoute>}
+            path="/admindashboard"
+            element={
+              <ProtectedRoute allowedRoles={["Admin"]}>
+                <AdminDashboard />
+              </ProtectedRoute>
+            }
           />
           <Route path="/forbidden" element={<Forbidden />} />
           <Route path="*" element={<NotFound />} />
