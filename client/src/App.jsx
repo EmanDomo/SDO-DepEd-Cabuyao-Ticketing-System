@@ -11,9 +11,12 @@ import ProtectedRoute from "./components/Context/ProtectedRoutes";
 import SchoolDashboard from "./components/School/SchoolDashboard";
 import CreateTicket from "./components/School/CreateTicket";
 import Ticket from "./components/School/Ticket";
+import ResetPassword from "./components/School/ResetPassword";
 
 // Admin
 import AdminDashboard from "./components/Admin/AdminDashboard";
+import CreateBatch from './components/Admin/CreateBatch';
+import PasswordRequests from "./components/Admin/PasswordRequests";
 
 // Public
 import Forbidden from "./components/Public/Forbidden";
@@ -51,12 +54,32 @@ function App() {
             }
           />
           <Route
+            path="/resetpassword"
+            element={
+              <ProtectedRoute allowedRoles={['Staff']}>
+                <ResetPassword />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/admindashboard"
             element={
               <ProtectedRoute allowedRoles={["Admin"]}>
                 <AdminDashboard />
               </ProtectedRoute>
             }
+          />
+          <Route
+            path="/passwordrequests"
+            element={
+              <ProtectedRoute allowedRoles={["Admin"]}>
+                <PasswordRequests />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path='/createbatch'
+            element={<ProtectedRoute allowedRoles={['Admin']}><CreateBatch /></ProtectedRoute>}
           />
           <Route path="/forbidden" element={<Forbidden />} />
           <Route path="*" element={<NotFound />} />
