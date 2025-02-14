@@ -104,7 +104,7 @@ router.post("/createTickets", (req, res) => {
 
         conn.query(
             query,
-            [ticketNumber, requestor, category, request, comments, JSON.stringify(attachments), status || 'In Progress'],
+            [ticketNumber, requestor, category, request, comments, JSON.stringify(attachments), status || 'Pending'],
             (err, result) => {
                 if (err) {
                     console.error("Database error:", err);
@@ -126,14 +126,16 @@ router.put("/tickets/:ticketId/status", (req, res) => {
     const { ticketId } = req.params;
     const { status } = req.body;
 
-    if (!["In Progress", "Closed"].includes(status)) {
+    const validStatuses = ["Completed", "Pending", "On Hold", "In Progress", "Rejected"];
+    
+    if (!validStatuses.includes(status)) {
         return res.status(400).json({ error: "Invalid status" });
     }
 
     const query = `
         UPDATE tbl_tickets 
         SET status = ?, 
-            closedAt = ${status === 'Closed' ? 'NOW()' : 'NULL'}
+            closedAt = ${status === 'Completed' ? 'NOW()' : 'NULL'}
         WHERE ticketId = ?
     `;
 
@@ -150,5 +152,4 @@ router.put("/tickets/:ticketId/status", (req, res) => {
         res.json({ message: "Ticket status updated successfully" });
     });
 });
-
 module.exports = router;

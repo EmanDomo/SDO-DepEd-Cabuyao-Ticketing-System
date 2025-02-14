@@ -148,10 +148,10 @@ const Navbar = () => {
                 overflow: 'hidden'
               }}
             >
-              <a href="/ticket" className="nav-link text-dark py-2 px-4 dropdown-item hover-effect">
+              <a href="/pendingticket" className="nav-link text-dark py-2 px-4 dropdown-item hover-effect">
                 Pending 
               </a>
-              <a href="/createticket" className="nav-link text-dark py-2 px-4 dropdown-item hover-effect">
+              <a href="/completedticket" className="nav-link text-dark py-2 px-4 dropdown-item hover-effect">
                 Completed 
               </a>
               <a href="#" className="nav-link text-dark py-2 px-4 dropdown-item hover-effect">
@@ -179,7 +179,7 @@ const Navbar = () => {
         <button
           className="btn btn-dark w-100 logout-btn"
           onClick={handleLogout}
-          style={{ backgroundColor: "#294a70" }}
+          style={{ backgroundColor: "#294a70", border: 'none'}}
         >
           Logout
         </button>

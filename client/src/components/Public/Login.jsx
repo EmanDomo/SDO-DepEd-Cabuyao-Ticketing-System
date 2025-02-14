@@ -1,3 +1,5 @@
+//LOGIN.JSX
+
 import React, { useRef, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Container, Form, Button, Card } from "react-bootstrap";
@@ -11,6 +13,7 @@ import { IoEyeOutline } from "react-icons/io5";
 import { FaRegEyeSlash } from "react-icons/fa";
 import { useAuth } from "../Context/AuthContext";
 import Modal from 'react-bootstrap/Modal';
+import { Link } from "react-router-dom";
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -134,28 +137,36 @@ const Login = () => {
                 className="schoolPassword"
                 required
               />
+              
               <InputGroup.Text
                 className="schoolIcon m-0"
                 onClick={togglePasswordVisibility}
               >
+                
                 {showPassword ? (
                   <IoEyeOutline className="fs-5" />
                 ) : (
                   <FaRegEyeSlash className="fs-5" />
                 )}
+            
               </InputGroup.Text>
             </InputGroup>
+            
           </Form>
         </Card.Body>
 
+        <Link to="/request-deped-account" className="mt-3 text-decoration-none">Request New DepEd Account</Link>
+
         <Card.Footer className="schoolBtn d-flex justify-content-center mb-3">
+          
           <Button
             variant="dark"
-            className="schoolLoginBtn"
+            className="schoolLoginBtn text-white"
             onClick={handleLogin}
           >
             Login
           </Button>
+          
         </Card.Footer>
       </Card>
 
@@ -191,25 +202,6 @@ const Login = () => {
           </Modal.Footer>
         </Modal>
       )}
-{/* 
-      <svg
-        width="100%"
-        height="400"
-        id="svg"
-        viewBox="0 0 1440 490"
-        xmlns="http://www.w3.org/2000/svg"
-        preserveAspectRatio="xMidYMid slice"
-        className="svgg transition duration-300 ease-in-out delay-150"
-      >
-        <path
-          d="M 0,500 L 0,187 C 74.58373205741626,158.46411483253587 149.1674641148325,129.92822966507177 247,121 C 344.8325358851675,112.07177033492823 465.9138755980862,122.7511961722488 560,142 C 654.0861244019138,161.2488038277512 721.1770334928229,189.06698564593302 828,193 C 934.8229665071771,196.93301435406698 1081.377990430622,176.98086124401914 1190,172 C 1298.622009569378,167.01913875598086 1369.311004784689,177.00956937799043 1440,187 L 1440,500 L 0,500 Z"
-          stroke="none"
-          strokeWidth="0"
-          fill="#294a70"
-          fillOpacity="1"
-          className="transition-all duration-300 ease-in-out delay-150 path-0"
-        ></path>
-      </svg> */}
     </div>
   );
 };

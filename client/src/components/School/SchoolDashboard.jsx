@@ -41,7 +41,32 @@ const SchoolDashboard = () => {
     navigate("/");
   };
 
-  // Define an array of statuses for each card
+  const handleCompletedTicket = () => {
+    navigate("/completedticket");
+  };
+
+  const handleCardClick = (status) => {
+    switch (status) {
+      case "Pending":
+        navigate("/pendingticket");
+        break;
+      case "Completed":
+        navigate("/completedticket");
+        break;
+      case "Rejected":
+        navigate("/rejectedticket");
+        break;
+      case "In Progress":
+        navigate("/inprogressticket");
+        break;
+      case "On Hold":
+        navigate("/onholdticket");
+        break;
+      default:
+        break;
+    }
+  };
+
   const statusData = [
     { text: "Pending", color: "text-warning", icon: <MdOutlinePending style={{ fontSize: "70px", color: "#294a70" }} /> },
     { text: "Completed", color: "text-success", icon: <FaRegCheckCircle style={{ fontSize: "70px", color: "#294a70" }} /> },
@@ -49,6 +74,7 @@ const SchoolDashboard = () => {
     { text: "In Progress", color: "text-primary", icon: <MdOutlineDownloading style={{ fontSize: "70px", color: "#294a70" }} /> },
     { text: "On Hold", color: "text-secondary", icon: <FaRegPauseCircle style={{ fontSize: "70px", color: "#294a70" }} /> },
   ];
+
 
   return (
     <div
@@ -82,8 +108,9 @@ const SchoolDashboard = () => {
                     width: "100%",
                     border: "none",
                     boxShadow: "2px 2px 10px 2px rgba(0, 0, 0, 0.15)",
+                    cursor: "pointer",
                   }}
-                >
+                  onClick={() => handleCardClick(status.text)}           >
                   <Card.Body>
                     <div className="row">
                       <div className="col-8">
