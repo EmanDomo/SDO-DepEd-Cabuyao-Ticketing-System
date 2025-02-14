@@ -126,9 +126,12 @@ router.put("/tickets/:ticketId/status", (req, res) => {
     const { ticketId } = req.params;
     const { status } = req.body;
 
+    console.log(`Received ticketId: ${ticketId} and status: ${status}`);
+
     const validStatuses = ["Completed", "Pending", "On Hold", "In Progress", "Rejected"];
     
     if (!validStatuses.includes(status)) {
+        console.log(`Invalid status: ${status}`);
         return res.status(400).json({ error: "Invalid status" });
     }
 
@@ -139,17 +142,24 @@ router.put("/tickets/:ticketId/status", (req, res) => {
         WHERE ticketId = ?
     `;
 
+    console.log("Generated query:", query);  // Log the generated query for debugging purposes
+
     conn.query(query, [status, ticketId], (err, result) => {
         if (err) {
-            console.error("Database error:", err);
+            console.error("Database error:", err);  // Log the actual error object
             return res.status(500).json({ error: "Failed to update ticket status" });
         }
 
+        console.log("Query result:", result);  // Log the result of the query for debugging purposes
+
         if (result.affectedRows === 0) {
+            console.log("No rows affected. Ticket might not exist.");
             return res.status(404).json({ error: "Ticket not found" });
         }
 
+        console.log("Ticket status updated successfully");
         res.json({ message: "Ticket status updated successfully" });
     });
 });
+
 module.exports = router;
