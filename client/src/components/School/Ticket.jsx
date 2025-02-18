@@ -1,13 +1,13 @@
 import Nav from "./Header";
 import { useWindowSize } from "react-use";
-import React, { useState, useEffect, useRef } from "react"; // Added useRef
+import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { jwtDecode } from "jwt-decode";
 import { FaRegTrashAlt } from "react-icons/fa";
 import { Container, Card, Col, Form, Row, FloatingLabel, Button, Modal } from "react-bootstrap";
 
 const Ticket = () => {
-  const fileInputRef = useRef(null); // Add ref for file input
+  const fileInputRef = useRef(null);
 
   const [formData, setFormData] = useState({
     requestor: "",
@@ -25,6 +25,10 @@ const Ticket = () => {
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showModal, setShowModal] = useState(false);
+  const [schoolCode, setSchoolCode] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [batches, setBatches] = useState([]);
+  const [selectedBatch, setSelectedBatch] = useState("");
 
   useEffect(() => {
     if (formData.subcategory) {
@@ -35,21 +39,58 @@ const Ticket = () => {
     }
   }, [formData.subcategory, formData.otherSubcategory]);
 
+  // Only fetch batches when category is Hardware
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      try {
-        const decoded = jwtDecode(token);
-        setFormData(prev => ({
-          ...prev,
-          requestor: decoded.username || "",
-        }));
-      } catch (error) {
-        console.error("Error decoding token", error);
-        setError("Authentication error. Please try logging in again.");
+    const fetchBatches = async () => {
+      if (formData.category !== "Hardware") {
+        setBatches([]);
+        setSelectedBatch("");
+        setLoading(false);
+        return;
       }
-    }
-  }, []);
+
+      setLoading(true);
+      const token = localStorage.getItem("token");
+      
+      if (token) {
+        try {
+          const decoded = jwtDecode(token);
+          const schoolCode = decoded.schoolCode;
+          
+          setFormData((prev) => ({
+            ...prev,
+            requestor: decoded.username || "",
+          }));
+  
+          if (!schoolCode) {
+            console.error("No school code found in token");
+            setError("Authentication error: No school code found");
+            setLoading(false);
+            return;
+          }
+  
+          const response = await axios.get(`http://localhost:8080/getBatches/${schoolCode}`, {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          });
+          
+          const batchesData = Array.isArray(response.data) ? response.data : [];
+          setBatches(batchesData);
+          
+        } catch (error) {
+          console.error("Error fetching batches:", error);
+          setError(error.response?.data?.message || "Error loading batches. Please try again.");
+          setBatches([]);
+        }
+      } else {
+        setError("No authentication token found");
+      }
+      setLoading(false);
+    };
+  
+    fetchBatches();
+  }, [formData.category]); // Added category as dependency
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -148,10 +189,10 @@ const Ticket = () => {
   const sidebarWidth = width >= 768 ? "250px" : "0";
 
   return (
-    <div className="ticket-container" style={{ marginLeft: sidebarWidth, display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
+       <div className="ticket-container" style={{ marginLeft: sidebarWidth, display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
       <Nav />
       <Container fluid className="">
-        <h3 style={{ color: "#294a70" }}>Ticket Request</h3>
+        {/* <h3 style={{ color: "#294a70" }}>Ticket Request</h3> */}
         <Row className="justify-content-center">
           <Col xs={12} sm={11} md={10} lg={8} xl={7}>
             <form onSubmit={handleSubmit}>
@@ -177,6 +218,30 @@ const Ticket = () => {
                       </Form.Select>
                     </Col>
                   </Row>
+                  {formData.category === "Hardware" && (
+                    <Row className="mb-3">
+                      <Form.Label column xs={12} sm={3} md={4}>Batch</Form.Label>
+                      <Col xs={12} sm={9} md={12}>
+                        {loading ? (
+                          <div>Loading batches...</div>
+                        ) : (
+                          <Form.Select
+                            value={selectedBatch}
+                            onChange={(e) => setSelectedBatch(e.target.value)}
+                            required
+                          >
+                            <option value="">Select Batch</option>
+                            {Array.isArray(batches) && batches.map((batch) => (
+                              <option key={batch.batch_id} value={batch.batch_id}>
+                                {batch.batch_number} - {new Date(batch.send_date).toLocaleDateString()}
+                              </option>
+                            ))}
+                          </Form.Select>
+                        )}
+                      </Col>
+                    </Row>
+                  )}
+
 
                   {formData.category && (
                     <Row className="mb-3">

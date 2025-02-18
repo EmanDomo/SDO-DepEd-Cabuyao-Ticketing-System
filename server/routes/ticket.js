@@ -51,32 +51,38 @@ router.get("/tickets", (req, res) => {
     });
 });
 
-router.get('/schoolbatches', (req, res) => {
+router.get('/getBatches/:schoolCode', (req, res) => {
+    const { schoolCode } = req.params;
+
+    console.log("Fetching batches for school code:", schoolCode); // Debug log
+
     const query = `
         SELECT 
-            b.batch_id,
-            b.batch_number,
-            b.send_date,
-            b.schoolCode,
-            b.school_name,
-            d.device_type,
-            d.device_number,
-            b.status,
-            b.received_date
-        FROM tbl_batches b
-        LEFT JOIN tbl_batch_devices d ON b.batch_id = d.batch_id 
-        ORDER BY b.batch_number;
+            batch_id,
+            batch_number,
+            send_date,
+            status
+        FROM tbl_batches 
+        WHERE schoolCode = ?
+        ORDER BY send_date DESC
     `;
 
-    conn.query(query, (err, result) => {
+    conn.query(query, [schoolCode], (err, results) => {
         if (err) {
             console.error('Error fetching batches:', err.message);
-            return res.status(500).json({ error: err.message });
+            return res.status(500).json({ 
+                message: 'Error fetching batches',
+                error: err.message 
+            });
         }
-        console.log('Fetched batches:', result);
-        res.json(result);
+
+        console.log("Found batches:", results); // Debug log
+
+        // Return an empty array if no batches found
+        res.json(results.length > 0 ? results : []);
     });
 });
+
 
 
 router.post("/createTickets", (req, res) => {
@@ -162,4 +168,29 @@ router.put("/tickets/:ticketId/status", (req, res) => {
     });
 });
 
+router.get("/tickets/:username/:status", (req, res) => {
+    const { username, status } = req.params;
+    
+    // Validate status
+    const validStatuses = ["Completed", "Pending", "On Hold", "In Progress", "Rejected"];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({ error: "Invalid status" });
+    }
+  
+    const query = `
+      SELECT * FROM tbl_tickets 
+      WHERE requestor = ? 
+      AND status = ?
+      ORDER BY date DESC
+    `;
+  
+    conn.query(query, [username, status], (err, results) => {
+      if (err) {
+        console.error("Database error:", err);
+        return res.status(500).json({ error: "Failed to fetch tickets" });
+      }
+      res.json(results);
+    });
+  });
+  
 module.exports = router;

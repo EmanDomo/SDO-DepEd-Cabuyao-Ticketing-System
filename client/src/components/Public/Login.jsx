@@ -14,6 +14,7 @@ import { FaRegEyeSlash } from "react-icons/fa";
 import { useAuth } from "../Context/AuthContext";
 import Modal from 'react-bootstrap/Modal';
 import { Link } from "react-router-dom";
+import Swal from 'sweetalert2'
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -61,34 +62,43 @@ const Login = () => {
       });
 
       if (response.ok) {
-        const data = await response.json();
-        localStorage.setItem("token", data.token);
-
-        const decodedUser = jwtDecode(data.token);
-        localStorage.setItem("user", JSON.stringify(decodedUser));
-
-        // Correct usage of data here
-        login(data.token);
-
-        if (decodedUser.role === "Admin") {
-          navigate("/admindashboard");
-        } else {
-          navigate("/schooldashboard");
-        }
+        Swal.fire({
+          icon: "success",
+          title: "Login Successful!",
+          text: "Welcome Back!",
+          timer: 1000,
+          showConfirmButton: false,
+        }).then(async () => {  // Make the callback async
+          const data = await response.json();
+          localStorage.setItem("token", data.token);
+      
+          const decodedUser = jwtDecode(data.token);
+          localStorage.setItem("user", JSON.stringify(decodedUser));
+      
+          // Correct usage of data here
+          login(data.token);
+      
+          if (decodedUser.role === "Admin") {
+            navigate("/admindashboard");
+          } else {
+            navigate("/schooldashboard");
+          }
+        });
       } else {
         const errorData = await response.json();
         setErrorMessage(errorData.message);
-
+      
         if (errorData.retryAfter) {
           setRetryAfter(errorData.retryAfter);
         }
-
+      
         if (errorData.remainingAttempts !== undefined) {
           setRemainingAttempts(errorData.remainingAttempts);
         }
-
+      
         setShowModal(true);
       }
+      
     } catch (error) {
       console.error("Login error:", error);
       setShowModal(true);

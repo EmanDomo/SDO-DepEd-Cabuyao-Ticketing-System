@@ -154,13 +154,13 @@ const Navbar = () => {
               <a href="/completedticket" className="nav-link text-dark py-2 px-4 dropdown-item hover-effect">
                 Completed 
               </a>
-              <a href="#" className="nav-link text-dark py-2 px-4 dropdown-item hover-effect">
+              <a href="/rejectedticket" className="nav-link text-dark py-2 px-4 dropdown-item hover-effect">
                 Rejected
               </a>
-              <a href="/createticket" className="nav-link text-dark py-2 px-4 dropdown-item hover-effect">
+              <a href="/inprogressticket" className="nav-link text-dark py-2 px-4 dropdown-item hover-effect">
                 In progress 
               </a>
-              <a href="#" className="nav-link text-dark py-2 px-4 dropdown-item hover-effect">
+              <a href="/onholdticket" className="nav-link text-dark py-2 px-4 dropdown-item hover-effect">
                 On Hold
               </a>
             </div>

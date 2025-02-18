@@ -61,6 +61,7 @@ router.post("/login", (req, res) => {
                 id: results[0].id,
                 username: results[0].username,
                 school: results[0].school,
+                schoolCode: results[0].schoolCode,
                 firstname: results[0].firstname,
                 lastname: results[0].lastname,
                 role: results[0].role // Ensure the role is included
