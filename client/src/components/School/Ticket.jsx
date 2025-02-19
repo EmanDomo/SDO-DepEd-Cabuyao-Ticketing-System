@@ -135,90 +135,83 @@ const Ticket = () => {
       attachmentPreviews: prev.attachmentPreviews.filter((_, i) => i !== index),
     }));
   };
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    setError("");
-  
-    // Check base required fields
-    if (!formData.requestor || !formData.category || !formData.request || !formData.comments) {
+// In Ticket.jsx - Updated handleSubmit function
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setIsSubmitting(true);
+  setError("");
+
+  // Basic validation
+  if (!formData.requestor || !formData.category || !formData.request || !formData.comments) {
       setError("Please fill in all required fields");
       setIsSubmitting(false);
       return;
-    }
-  
-    // Only check for batch if category is Hardware
-    if (formData.category === "Hardware") {
-      if (!selectedBatch) {
-        setError("Please select a batch for hardware requests");
-        setIsSubmitting(false);
-        return;
-      }
-    }
-  
-    const data = new FormData();
-    
-    // Add basic form fields
-    data.append("requestor", formData.requestor);
-    data.append("category", formData.category);
-    data.append("request", formData.request);
-    data.append("comments", formData.comments);
-    data.append("status", "Pending");
-  
-    // Only add batch information for hardware requests
-    if (formData.category === "Hardware") {
+  }
+
+  // Hardware-specific validation
+  if (formData.category === "Hardware" && !selectedBatch) {
+      setError("Please select a batch for hardware requests");
+      setIsSubmitting(false);
+      return;
+  }
+
+  const data = new FormData();
+  data.append("requestor", formData.requestor);
+  data.append("category", formData.category);
+  data.append("request", formData.request);
+  data.append("comments", formData.comments);
+
+  // Only append batchId for Hardware category
+  if (formData.category === "Hardware") {
       data.append("batchId", selectedBatch);
-    }
-  
-    // Add attachments if any
-    formData.attachments.forEach(file => {
+  }
+
+  // Handle attachments
+  formData.attachments.forEach(file => {
       if (file.size > 5 * 1024 * 1024) {
-        setError("File size exceeds 5MB limit");
-        setIsSubmitting(false);
-        return;
+          setError("File size exceeds 5MB limit");
+          setIsSubmitting(false);
+          return;
       }
       data.append("attachments", file);
-    });
-  
-    try {
+  });
+
+  try {
       const response = await axios.post("http://localhost:8080/createTickets", data, {
-        headers: { 
-          "Content-Type": "multipart/form-data"
-        }
+          headers: { 
+              "Content-Type": "multipart/form-data"
+          }
       });
-  
+
       setTicketNumber(response.data.ticketNumber);
-      setMessage(response.data.message);
+      setMessage("Ticket created successfully");
       
-      // Reset form
+      // Reset form while keeping requestor
       setFormData(prev => ({
-        requestor: prev.requestor,
-        category: "",
-        subcategory: "",
-        otherSubcategory: "",
-        request: "",
-        comments: "",
-        attachments: [],
-        attachmentPreviews: [],
+          requestor: prev.requestor,
+          category: "",
+          subcategory: "",
+          otherSubcategory: "",
+          request: "",
+          comments: "",
+          attachments: [],
+          attachmentPreviews: [],
       }));
-      setSelectedBatch(""); // Reset batch selection
+      setSelectedBatch("");
       
-      // Reset file input
       if (fileInputRef.current) {
-        fileInputRef.current.value = '';
+          fileInputRef.current.value = '';
       }
       
       setShowModal(true);
-    } catch (error) {
+  } catch (error) {
       console.error("Error submitting ticket:", error);
-      const errorMessage = error.response?.data?.error || "Error submitting the ticket. Please try again.";
-      setError(errorMessage);
+      setError(error.response?.data?.error || "Error submitting ticket. Please try again.");
       setShowModal(true);
-    } finally {
+  } finally {
       setIsSubmitting(false);
-    }
-  };
-
+  }
+};
   const { width } = useWindowSize();
   const sidebarWidth = width >= 768 ? "250px" : "0";
 

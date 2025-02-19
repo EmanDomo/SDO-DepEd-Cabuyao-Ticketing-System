@@ -89,6 +89,7 @@ router.get('/getBatches/:schoolCode', (req, res) => {
     });
 });
 
+// ticket.js - Backend Route
 router.post("/createTickets", (req, res) => {
     upload(req, res, function (err) {
         if (err instanceof multer.MulterError) {
@@ -97,55 +98,51 @@ router.post("/createTickets", (req, res) => {
             return res.status(400).json({ error: err.message });
         }
 
-        const { requestor, category, request, comments, status, batchId } = req.body;
+        const { requestor, category, request, comments } = req.body;
+        const batchId = req.body.batchId || null;
         const attachments = req.files ? req.files.map(file => file.filename) : [];
 
-        // Base validation for all tickets
+        // Basic validation
         if (!requestor || !category || !request || !comments) {
             return res.status(400).json({ error: "Missing required fields" });
         }
 
-        // Additional validation only for Hardware category
+        // Hardware-specific validation
         if (category === 'Hardware' && !batchId) {
             return res.status(400).json({ error: "Batch ID is required for hardware requests" });
         }
 
         const ticketNumber = `TKT-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
 
-        // Dynamic query based on category
-        let query;
-        let queryParams;
+        const query = `
+            INSERT INTO tbl_tickets 
+            (ticketNumber, requestor, category, request, comments, attachments, status, date, archived, batchId) 
+            VALUES (?, ?, ?, ?, ?, ?, 'Pending', NOW(), 0, ?)
+        `;
 
-        if (category === 'Hardware') {
-            query = `
-                INSERT INTO tbl_tickets 
-                (ticketNumber, requestor, category, request, comments, attachments, status, date, archived, batchId) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), 0, ?)
-            `;
-            queryParams = [ticketNumber, requestor, category, request, comments, JSON.stringify(attachments), status || 'Pending', batchId];
-        } else {
-            query = `
-                INSERT INTO tbl_tickets 
-                (ticketNumber, requestor, category, request, comments, attachments, status, date, archived) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), 0)
-            `;
-            queryParams = [ticketNumber, requestor, category, request, comments, JSON.stringify(attachments), status || 'Pending'];
-        }
+        const queryParams = [
+            ticketNumber,
+            requestor,
+            category,
+            request,
+            comments,
+            JSON.stringify(attachments),
+            category === 'Hardware' ? batchId : null  // Explicitly set null for Software
+        ];
 
         conn.query(query, queryParams, (err, result) => {
             if (err) {
                 console.error("Database error:", err);
-                return res.status(500).json({ error: "Failed to create ticket" });
+                return res.status(400).json({ error: "Database error: " + err.message });
             }
             res.json({
-                message: "Ticket submitted successfully",
+                message: "Ticket created successfully",
                 ticketNumber,
                 ticketId: result.insertId
             });
         });
     });
 });
-// Add this to your tickets.js route file
 
 router.put("/tickets/:ticketId/status", (req, res) => {
     const { ticketId } = req.params;

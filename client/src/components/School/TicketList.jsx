@@ -35,12 +35,12 @@ const TicketList = ({ status }) => {
   
         await Swal.fire({
           title: "Archived!",
-          text: "The ticket has been archived.",
+          text: "The ticket has been deleted.",
           icon: "success"
         });
       }
     } catch (error) {
-      setError("Failed to archive ticket");
+      setError("Failed to delete ticket");
       console.error("Archive error:", error);
     }
   };
@@ -115,11 +115,11 @@ const TicketList = ({ status }) => {
   return (
     <div className="vh-90 d-flex flex-column" style={{ marginTop: '60px' }}> {/* Add top margin */}
       <Card className="flex-grow-1 m-0 border-0 rounded-0">
-        <Card.Header className="text-black py-3 sticky-top" style={{ top: '56px', backgroundColor: "transparent" }}> {/* Adjust sticky position */}
+        <Card.Header className="py-3 sticky-top" style={{ top: '56px', backgroundColor: "transparent" }}> {/* Adjust sticky position */}
           <div className="container-fluid">
             <div className="d-flex justify-content-between align-items-center">
-              <h5 className="mb-0">{status} Tickets</h5>
-              <span className="badge bg-dark text-light">
+              <h5 className="mb-0" style={{color: '#294a70'}}>{status} Tickets</h5>
+              <span className="badge text-light p-2" style={{backgroundColor: '#294a70'}}>
                 {tickets.length} Tickets
               </span>
             </div>
@@ -137,11 +137,11 @@ const TicketList = ({ status }) => {
               <Table hover className="mb-0">
                 <thead className="sticky-top bg-white" style={{ top: '0' }}> {/* Reset sticky position for table header */}
                   <tr>
-                    <th className="px-3">Ticket #</th>
-                    <th className="px-3">Category</th>
-                    <th className="px-3">Request</th>
-                    <th className="px-3">Date</th>
-                    <th className="px-3">Actions</th>
+                    <th className="px-3" style={{color: '#294a70'}}>Ticket No.</th>
+                    <th className="px-3 text-center" style={{color: '#294a70'}}>Category</th>
+                    <th className="px-3 text-center" style={{color: '#294a70'}}>Request</th>
+                    <th className="px-3 text-center" style={{color: '#294a70'}}>Date</th>
+                    <th className="px-3 text-center" style={{color: '#294a70'}}>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -156,7 +156,7 @@ const TicketList = ({ status }) => {
                       </td>
                       <td className="px-3">{new Date(ticket.date).toLocaleDateString()}</td>
                       <td className="px-3">
-                        <div className="d-flex gap-2 flex-wrap">
+                        <div className="d-flex gap-2 flex-wrap ">
                           <Button
                             size="sm"
                             variant="primary"

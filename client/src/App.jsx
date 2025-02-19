@@ -9,7 +9,6 @@ import ProtectedRoute from "./components/Context/ProtectedRoutes";
 
 // School
 import SchoolDashboard from "./components/School/SchoolDashboard";
-import CreateTicket from "./components/School/CreateTicket";
 import Ticket from "./components/School/Ticket";
 import Completed from "./components/School/Status/Completed";
 import Pending from "./components/School/Status/Pending";
@@ -50,14 +49,6 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={["Staff"]}>
                 <Ticket />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/createticket"
-            element={
-              <ProtectedRoute allowedRoles={["Staff"]}>
-                <CreateTicket />
               </ProtectedRoute>
             }
           />
