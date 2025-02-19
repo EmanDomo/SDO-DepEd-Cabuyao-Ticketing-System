@@ -20,6 +20,7 @@ const AdminDashboard = () => {
     const [selectedTicket, setSelectedTicket] = useState(null);
     const [currentAttachments, setCurrentAttachments] = useState([]);
     const { logout } = useAuth();
+    const [showArchived, setShowArchived] = useState(false);
 
     // Authentication check
     useEffect(() => {
@@ -43,7 +44,7 @@ const AdminDashboard = () => {
     const fetchTickets = async () => {
         try {
             setLoading(true);
-            const response = await axios.get("http://localhost:8080/tickets");
+            const response = await axios.get(`http://localhost:8080/tickets?showArchived=${showArchived}`);
             const data = response.data;
 
             if (!Array.isArray(data)) {
@@ -152,6 +153,7 @@ const AdminDashboard = () => {
                         <Button variant="dark" onClick={handleCreateBatch}>Create Batch</Button>
                         <Button variant="outline-danger" onClick={handleLogout}>Logout</Button>
                     </div>
+                    
                 </Card.Header>
             </Card>
 

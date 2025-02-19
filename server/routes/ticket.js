@@ -41,8 +41,14 @@ const upload = multer({
 }).array("attachments", 10);
 
 router.get("/tickets", (req, res) => {
-    const query = "SELECT * FROM tbl_tickets ORDER BY date DESC";
-    conn.query(query, (err, result) => {
+    const { showArchived } = req.query;
+    const query = `
+        SELECT * FROM tbl_tickets 
+        WHERE archived = ?
+        ORDER BY date DESC
+    `;
+    
+    conn.query(query, [showArchived === 'true' ? 1 : 0], (err, result) => {
         if (err) {
             console.error("Error fetching tickets:", err.message);
             return res.status(500).json({ error: "Failed to fetch tickets" });
@@ -83,8 +89,6 @@ router.get('/getBatches/:schoolCode', (req, res) => {
     });
 });
 
-
-
 router.post("/createTickets", (req, res) => {
     upload(req, res, function (err) {
         if (err instanceof multer.MulterError) {
@@ -93,39 +97,54 @@ router.post("/createTickets", (req, res) => {
             return res.status(400).json({ error: err.message });
         }
 
-        const { requestor, category, request, comments, status } = req.body;
+        const { requestor, category, request, comments, status, batchId } = req.body;
         const attachments = req.files ? req.files.map(file => file.filename) : [];
-        const ticketNumber = `TKT-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
 
-        // Validate required fields
-        if (!requestor || !category || !request) {
+        // Base validation for all tickets
+        if (!requestor || !category || !request || !comments) {
             return res.status(400).json({ error: "Missing required fields" });
         }
 
-        const query = `
-            INSERT INTO tbl_tickets 
-            (ticketNumber, requestor, category, request, comments, attachments, status, date) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, NOW())
-        `;
+        // Additional validation only for Hardware category
+        if (category === 'Hardware' && !batchId) {
+            return res.status(400).json({ error: "Batch ID is required for hardware requests" });
+        }
 
-        conn.query(
-            query,
-            [ticketNumber, requestor, category, request, comments, JSON.stringify(attachments), status || 'Pending'],
-            (err, result) => {
-                if (err) {
-                    console.error("Database error:", err);
-                    return res.status(500).json({ error: "Failed to create ticket" });
-                }
-                res.json({
-                    message: "Ticket submitted successfully",
-                    ticketNumber,
-                    ticketId: result.insertId
-                });
+        const ticketNumber = `TKT-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+
+        // Dynamic query based on category
+        let query;
+        let queryParams;
+
+        if (category === 'Hardware') {
+            query = `
+                INSERT INTO tbl_tickets 
+                (ticketNumber, requestor, category, request, comments, attachments, status, date, archived, batchId) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), 0, ?)
+            `;
+            queryParams = [ticketNumber, requestor, category, request, comments, JSON.stringify(attachments), status || 'Pending', batchId];
+        } else {
+            query = `
+                INSERT INTO tbl_tickets 
+                (ticketNumber, requestor, category, request, comments, attachments, status, date, archived) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), 0)
+            `;
+            queryParams = [ticketNumber, requestor, category, request, comments, JSON.stringify(attachments), status || 'Pending'];
+        }
+
+        conn.query(query, queryParams, (err, result) => {
+            if (err) {
+                console.error("Database error:", err);
+                return res.status(500).json({ error: "Failed to create ticket" });
             }
-        );
+            res.json({
+                message: "Ticket submitted successfully",
+                ticketNumber,
+                ticketId: result.insertId
+            });
+        });
     });
 });
-
 // Add this to your tickets.js route file
 
 router.put("/tickets/:ticketId/status", (req, res) => {
@@ -171,7 +190,6 @@ router.put("/tickets/:ticketId/status", (req, res) => {
 router.get("/tickets/:username/:status", (req, res) => {
     const { username, status } = req.params;
     
-    // Validate status
     const validStatuses = ["Completed", "Pending", "On Hold", "In Progress", "Rejected"];
     if (!validStatuses.includes(status)) {
       return res.status(400).json({ error: "Invalid status" });
@@ -181,6 +199,7 @@ router.get("/tickets/:username/:status", (req, res) => {
       SELECT * FROM tbl_tickets 
       WHERE requestor = ? 
       AND status = ?
+      AND archived = 0
       ORDER BY date DESC
     `;
   
@@ -191,6 +210,31 @@ router.get("/tickets/:username/:status", (req, res) => {
       }
       res.json(results);
     });
-  });
+});
+
+
+  router.put("/tickets/:ticketId/archive", (req, res) => {
+    const { ticketId } = req.params;
+    
+    const query = `
+        UPDATE tbl_tickets 
+        SET archived = 1
+        WHERE ticketId = ?
+    `;
+
+    conn.query(query, [ticketId], (err, result) => {
+        if (err) {
+            console.error("Database error:", err);
+            return res.status(500).json({ error: "Failed to delete ticket" });
+        }
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: "Ticket not found" });
+        }
+
+        res.json({ message: "Ticket deleted successfully" });
+    });
+});
+
   
 module.exports = router;

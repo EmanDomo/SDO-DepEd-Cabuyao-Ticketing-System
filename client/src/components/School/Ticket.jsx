@@ -135,33 +135,62 @@ const Ticket = () => {
       attachmentPreviews: prev.attachmentPreviews.filter((_, i) => i !== index),
     }));
   };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
     setError("");
-
-    if (!formData.category || !formData.request || !formData.comments) {
+  
+    // Check base required fields
+    if (!formData.requestor || !formData.category || !formData.request || !formData.comments) {
       setError("Please fill in all required fields");
       setIsSubmitting(false);
       return;
     }
-
-    const data = new FormData();
-    Object.entries(formData).forEach(([key, value]) => {
-      if (key !== 'attachments' && key !== 'attachmentPreviews') {
-        data.append(key, value);
+  
+    // Only check for batch if category is Hardware
+    if (formData.category === "Hardware") {
+      if (!selectedBatch) {
+        setError("Please select a batch for hardware requests");
+        setIsSubmitting(false);
+        return;
       }
-    });
+    }
+  
+    const data = new FormData();
+    
+    // Add basic form fields
+    data.append("requestor", formData.requestor);
+    data.append("category", formData.category);
+    data.append("request", formData.request);
+    data.append("comments", formData.comments);
     data.append("status", "Pending");
-    formData.attachments.forEach(file => data.append("attachments", file));
-
+  
+    // Only add batch information for hardware requests
+    if (formData.category === "Hardware") {
+      data.append("batchId", selectedBatch);
+    }
+  
+    // Add attachments if any
+    formData.attachments.forEach(file => {
+      if (file.size > 5 * 1024 * 1024) {
+        setError("File size exceeds 5MB limit");
+        setIsSubmitting(false);
+        return;
+      }
+      data.append("attachments", file);
+    });
+  
     try {
       const response = await axios.post("http://localhost:8080/createTickets", data, {
-        headers: { "Content-Type": "multipart/form-data" },
+        headers: { 
+          "Content-Type": "multipart/form-data"
+        }
       });
+  
       setTicketNumber(response.data.ticketNumber);
       setMessage(response.data.message);
+      
+      // Reset form
       setFormData(prev => ({
         requestor: prev.requestor,
         category: "",
@@ -172,14 +201,19 @@ const Ticket = () => {
         attachments: [],
         attachmentPreviews: [],
       }));
-      // Reset the file input
+      setSelectedBatch(""); // Reset batch selection
+      
+      // Reset file input
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
+      
       setShowModal(true);
     } catch (error) {
       console.error("Error submitting ticket:", error);
-      setError(error.response?.data?.error || "Error submitting the ticket. Please try again.");
+      const errorMessage = error.response?.data?.error || "Error submitting the ticket. Please try again.";
+      setError(errorMessage);
+      setShowModal(true);
     } finally {
       setIsSubmitting(false);
     }
