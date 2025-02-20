@@ -4,7 +4,7 @@ import { jwtDecode } from "jwt-decode";
 import { useAuth } from "../Context/AuthContext";
 import axios from "axios";
 import "../../styles/AdminDashboard.css";
-import { Card, Table, Button, Badge, Form, Alert, Modal, Row, Col, Nav, Tab } from "react-bootstrap";
+import { Card, Table, Button, Badge, Form, Alert, Modal, Row, Col, Nav, Tab, Tabs } from "react-bootstrap";
 
 const AdminDashboard = () => {
     const navigate = useNavigate();
@@ -27,6 +27,12 @@ const AdminDashboard = () => {
     const [showNewRequestModal, setShowNewRequestModal] = useState(false);
     const [showResetRequestModal, setShowResetRequestModal] = useState(false);
     const { logout } = useAuth();
+    const [showFilesModal, setShowFilesModal] = useState(false);
+    const [currentFiles, setCurrentFiles] = useState({
+        endorsementLetter: null,
+        prcId: null,
+        proofOfIdentity: null
+        });
 
     // Authentication check
     useEffect(() => {
@@ -138,6 +144,19 @@ const AdminDashboard = () => {
         }
     };
 
+     // Add a function to handle opening the files modal
+     const handleOpenFiles = (request) => {
+        console.log("Request object:", request);
+        
+        setCurrentFiles({
+            endorsement_letter: request.endorsement_letter || "",
+            prc_id: request.prc_id || "",
+            proof_of_identity: request.proof_of_identity || ""
+        });
+        setShowFilesModal(true);
+    };
+
+
     const handleUpdateStatus = async (ticketId, newStatus) => {
         try {
             await axios.put(`http://localhost:8080/tickets/${ticketId}/status`, {
@@ -238,7 +257,7 @@ const AdminDashboard = () => {
     };
 
     const statusOptions = ["Completed", "Pending", "On Hold", "In Progress", "Rejected"];
-    const accountStatusOptions = ["Completed", "Pending", "On Hold", "In Progress", "Rejected"];
+    const accountStatusOptions = ["Completed", "Pending", "In Progress", "Rejected"];
 
     return (
         <div className="admin-dashboard p-4">
@@ -378,40 +397,55 @@ const AdminDashboard = () => {
                                             <thead>
                                                 <tr>
                                                     <th>Request ID</th>
-                                                    <th>Name</th>
                                                     <th>Account Type</th>
+                                                    <th>Name</th>
                                                     <th>School</th>
                                                     <th>Designation</th>
+                                                    <th>School ID</th>
+                                                    <th>Personal Gmail Account</th>
                                                     <th>Status</th>
                                                     <th>Date</th>
                                                     <th>Actions</th>
+                                                   
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 {filteredNewAccountRequests.map((request) => (
                                                     <tr key={request.id}>
                                                         <td>{request.id}</td>
-                                                        <td>{request.name}</td>
                                                         <td>{request.selected_type}</td>
+                                                        <td>{request.name}</td>
                                                         <td>{request.school}</td>
                                                         <td>{request.designation}</td>
+                                                        <td>{request.school_id}</td>
+                                                        <td>{request.personal_gmail}</td>
                                                         <td>
+                                                        
                                                             <Badge bg={getStatusBadgeVariant(request.status)}>
                                                                 {request.status}
                                                             </Badge>
                                                         </td>
                                                         <td>{new Date(request.created_at).toLocaleDateString()}</td>
                                                         <td>
-                                                            <Button 
-                                                                size="sm" 
-                                                                variant="primary"
-                                                                onClick={() => {
-                                                                    setSelectedNewRequest(request);
-                                                                    setShowNewRequestModal(true);
-                                                                }}
-                                                            >
-                                                                View Details
-                                                            </Button>
+                                                            <div className="d-flex gap-2">
+                                                                <Button 
+                                                                    size="sm" 
+                                                                    variant="primary"
+                                                                    onClick={() => {
+                                                                        setSelectedNewRequest(request);
+                                                                        setShowNewRequestModal(true);
+                                                                    }}
+                                                                >
+                                                                    View Details
+                                                                </Button>
+                                                                <Button 
+                                                                    size="sm" 
+                                                                    variant="info"
+                                                                    onClick={() => handleOpenFiles(request)}
+                                                                >
+                                                                    View Files
+                                                                </Button>
+                                                            </div>
                                                         </td>
                                                     </tr>
                                                 ))}
@@ -579,12 +613,12 @@ const AdminDashboard = () => {
                     {selectedNewRequest && (
                         <div>
                             <h6>Request ID: {selectedNewRequest.id}</h6>
-                            <p><strong>Name:</strong> {selectedNewRequest.name}</p>
-                            <p><strong>Email:</strong> {selectedNewRequest.email}</p>
                             <p><strong>Account Type:</strong> {selectedNewRequest.selected_type}</p>
-                            <p><strong>School:</strong> {selectedNewRequest.school}</p>
+                            <p><strong>Name:</strong> {selectedNewRequest.name}</p>
                             <p><strong>Designation:</strong> {selectedNewRequest.designation}</p>
-                            <p><strong>Phone Number:</strong> {selectedNewRequest.phone_number}</p>
+                            <p><strong>School:</strong> {selectedNewRequest.school}</p>
+                            <p><strong>School ID:</strong> {selectedNewRequest.school_id}</p>
+                            <p><strong>Personal Gmail Account:</strong> {selectedNewRequest.personal_gmail}</p>
                             <p><strong>Date Created:</strong> {new Date(selectedNewRequest.created_at).toLocaleString()}</p>
                             <p><strong>Status:</strong> 
                                 <Badge bg={getStatusBadgeVariant(selectedNewRequest.status)} className="ms-2">
@@ -611,6 +645,78 @@ const AdminDashboard = () => {
                 </Modal.Body>
             </Modal>
 
+
+                        {/* Files Modal */}
+            <Modal
+                show={showFilesModal}
+                onHide={() => setShowFilesModal(false)}
+                size="lg"
+                centered
+            >
+                <Modal.Header closeButton>
+                    <Modal.Title>Account Request Files</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <Tabs defaultActiveKey="endorsement_letter" id="account-files-tabs">
+                        <Tab eventKey="endorsement_letter" title="Endorsement Letter">
+                            {currentFiles.endorsement_letter ? (
+                                <div className="text-center my-3">
+                                    <div className="mb-3">
+                                        <span style={{ fontSize: '2rem' }}>{getFileIcon(currentFiles.endorsement_letter)}</span>
+                                        <h5 className="mt-2">{currentFiles.endorsement_letter}</h5>
+                                    </div>
+                                    <Button
+                                        variant="primary"
+                                        onClick={() => window.open(`http://localhost:8080/deped_uploads/${currentFiles.endorsement_letter}`, '_blank')}
+                                    >
+                                        Open Endorsement Letter
+                                    </Button>
+                                </div>
+                            ) : (
+                                <div className="text-center py-4">No endorsement letter file available</div>
+                            )}
+                        </Tab>
+                        <Tab eventKey="prc_id" title="PRC ID">
+                            {currentFiles.prc_id ? (
+                                <div className="text-center my-3">
+                                    <div className="mb-3">
+                                        <span style={{ fontSize: '2rem' }}>{getFileIcon(currentFiles.prc_id)}</span>
+                                        <h5 className="mt-2">{currentFiles.prc_id}</h5>
+                                    </div>
+                                    <Button
+                                        variant="primary"
+                                        onClick={() => window.open(`http://localhost:8080/deped_uploads/${currentFiles.prc_id}`, '_blank')}
+                                    >
+                                        Open PRC ID
+                                    </Button>
+                                </div>
+                            ) : (
+                                <div className="text-center py-4">No PRC ID file available</div>
+                            )}
+                        </Tab>
+                        <Tab eventKey="proof_of_identity" title="Proof of Identity">
+                            {currentFiles.proof_of_identity ? (
+                                <div className="text-center my-3">
+                                    <div className="mb-3">
+                                        <span style={{ fontSize: '2rem' }}>{getFileIcon(currentFiles.proof_of_identity)}</span>
+                                        <h5 className="mt-2">{currentFiles.proof_of_identity}</h5>
+                                    </div>
+                                    <Button
+                                        variant="primary"
+                                        onClick={() => window.open(`http://localhost:8080/deped_uploads/${currentFiles.proof_of_identity}`, '_blank')}
+                                    >
+                                        Open Proof of Identity
+                                    </Button>
+                                </div>
+                            ) : (
+                                <div className="text-center py-4">No proof of identity file available</div>
+                            )}
+                        </Tab>
+                    </Tabs>
+                </Modal.Body>
+            </Modal>
+
+
             {/* Reset Account Request Detail Modal */}
             <Modal 
                 show={showResetRequestModal} 
@@ -625,12 +731,11 @@ const AdminDashboard = () => {
                     {selectedResetRequest && (
                         <div>
                             <h6>Request ID: {selectedResetRequest.id}</h6>
-                            <p><strong>Name:</strong> {selectedResetRequest.name}</p>
-                            <p><strong>Email:</strong> {selectedResetRequest.email}</p>
                             <p><strong>Account Type:</strong> {selectedResetRequest.selected_type}</p>
+                            <p><strong>Name:</strong> {selectedResetRequest.name}</p>
                             <p><strong>School:</strong> {selectedResetRequest.school}</p>
+                            <p><strong>School ID:</strong> {selectedResetRequest.school_id}</p>
                             <p><strong>Employee Number:</strong> {selectedResetRequest.employee_number}</p>
-                            <p><strong>Phone Number:</strong> {selectedResetRequest.phone_number}</p>
                             <p><strong>Date Created:</strong> {new Date(selectedResetRequest.created_at).toLocaleString()}</p>
                             <p><strong>Status:</strong> 
                                 <Badge bg={getStatusBadgeVariant(selectedResetRequest.status)} className="ms-2">
@@ -659,6 +764,7 @@ const AdminDashboard = () => {
         </div>
     );
 };
+
 
 export default AdminDashboard;
 

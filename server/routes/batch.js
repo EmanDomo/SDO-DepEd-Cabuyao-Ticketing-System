@@ -17,6 +17,17 @@ router.get("/schools", (req, res) => {
     });
 });
 
+router.get("/schoolbatches", (req, res) => {
+    const query = "SELECT * FROM tbl_batches";
+    conn.query(query, (err, result) => {
+      if (err) {
+        console.error("Error fetching batches:", err.message);
+        return res.status(500).json({ error: err.message });
+      }
+      res.json(result);
+    });
+  });
+
 router.get("/batches", (req, res) => {
     const query = "SELECT * FROM tbl_batches";
     conn.query(query, (err, result) => {
@@ -137,18 +148,18 @@ router.get("/nextBatchNumber", (req, res) => {
     });
 });
 
-router.get("/getbatches", (req, res) => {
-    const district = req.query.district;
-    const query = "SELECT schoolCode, school FROM tbl_users WHERE district = ? AND role = 'Staff'";
+// router.get("/getbatches", (req, res) => {
+//     const district = req.query.district;
+//     const query = "SELECT schoolCode, school FROM tbl_users WHERE district = ? AND role = 'Staff'";
 
-    conn.query(query, [district], (err, results) => {
-        console.log("Query results:", results); // Add this log
-        if (err) {
-            console.error("Database error:", err);
-            return res.status(500).json({ error: err.message });
-        }
-        res.json(results);
-    });
-});
+//     conn.query(query, [district], (err, results) => {
+//         console.log("Query results:", results); // Add this log
+//         if (err) {
+//             console.error("Database error:", err);
+//             return res.status(500).json({ error: err.message });
+//         }
+//         res.json(results);
+//     });
+// });
 
 module.exports = router;

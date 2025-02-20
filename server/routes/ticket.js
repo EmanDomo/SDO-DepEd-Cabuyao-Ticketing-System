@@ -91,111 +91,49 @@ router.get('/getBatches/:schoolCode', (req, res) => {
 
 router.post("/createTickets", (req, res) => {
     upload(req, res, function (err) {
-        // Handle file upload errors
-        if (err instanceof multer.MulterError) {
-            console.log("Multer Error:", err.message);
-            return res.status(400).json({ error: "File upload error: " + err.message });
-        } else if (err) {
-            console.log("General Error:", err.message);
-            return res.status(400).json({ error: err.message });
-        }
-
-        // Destructure and log the body for better debugging
-        const { requestor, category, request, comments } = req.body;
-        const batchId = req.body.batchId || null;
-        const attachments = req.files ? req.files.map(file => file.filename) : [];
-
-        console.log("Request Body:", req.body);
-        console.log("Uploaded Files:", req.files);
-
-        // Validate required fields
-        if (!requestor || !category || !request || !comments) {
-            console.log("Missing required fields:", { requestor, category, request, comments });
-            return res.status(400).json({ error: "Missing required fields" });
-        }
-
-        // Validate requestor field
-        if (typeof requestor !== 'string' || requestor.trim() === '') {
-            console.log("Invalid requestor:", requestor);
-            return res.status(400).json({ error: "Invalid requestor" });
-        }
-
-        // Validate category field
-        const validCategories = ['Hardware', 'Software'];
-        if (!validCategories.includes(category)) {
-            console.log("Invalid category:", category);
-            return res.status(400).json({ error: "Invalid category" });
-        }
-
-        // Validate request field
-        if (typeof request !== 'string' || request.trim() === '') {
-            console.log("Invalid request:", request);
-            return res.status(400).json({ error: "Invalid request" });
-        }
-
-        // Validate comments field
-        if (typeof comments !== 'string' || comments.trim() === '') {
-            console.log("Invalid comments:", comments);
-            return res.status(400).json({ error: "Invalid comments" });
-        }
-
-        // Hardware-specific validation
-        if (category === 'Hardware' && !batchId) {
-            console.log("Missing batchId for hardware category");
-            return res.status(400).json({ error: "Batch ID is required for hardware requests" });
-        }
-
-        // Validate batchId (if provided)
-        if (batchId && typeof batchId !== 'string') {
-            console.log("Invalid batchId:", batchId);
-            return res.status(400).json({ error: "Invalid batch ID" });
-        }
-
-        // Validate attachments (if any)
-        if (attachments.length > 0) {
-            console.log("Attachments:", attachments);
-            // You can add further checks here, such as file type validation if necessary
-        } else {
-            console.log("No attachments uploaded.");
-        }
-
-        // Generate a unique ticket number
-        const ticketNumber = `TKT-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-
-        // SQL query to insert the ticket into the database
-        const query = `
-            INSERT INTO tbl_tickets 
-            (ticketNumber, requestor, category, request, comments, attachments, status, date, archived, batchId) 
-            VALUES (?, ?, ?, ?, ?, ?, 'Pending', NOW(), 0, ?)
-        `;
-
-        // Execute query and handle result
-        conn.query(query, [
+      if (err instanceof multer.MulterError) {
+        return res.status(400).json({ error: "File upload error: " + err.message });
+      } else if (err) {
+        return res.status(400).json({ error: err.message });
+      }
+  
+      const { requestor, category, request, comments, status, batch } = req.body;
+      const attachments = req.files ? req.files.map(file => file.filename) : [];
+      const ticketNumber = `TKT-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+  
+      // Validate required fields
+      if (!requestor || !category || !request) {
+        return res.status(400).json({ error: "Missing required fields" });
+      }
+  
+      if (category === "Hardware" && !batch) {
+        return res.status(400).json({ error: "Batch is required for hardware issues" });
+      }
+  
+      const query = `
+        INSERT INTO tbl_tickets 
+        (ticketNumber, requestor, category, request, comments, attachments, status, date, batch_id) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), ?)
+      `;
+  
+      conn.query(
+        query,
+        [ticketNumber, requestor, category, request, comments, JSON.stringify(attachments), status || 'In Progress', batch || null],
+        (err, result) => {
+          if (err) {
+            console.error("Database error:", err);
+            return res.status(500).json({ error: "Failed to create ticket" });
+          }
+          res.json({
+            message: "Ticket submitted successfully",
             ticketNumber,
-            requestor,
-            category,
-            request,
-            comments,
-            JSON.stringify(attachments),
-            batchId  // This will be null for Software tickets
-        ], (err, result) => {
-            if (err) {
-                console.error("Database error:", err);
-                return res.status(400).json({ error: "Database error: " + err.message });
-            }
-            console.log("Ticket created successfully:", {
-                message: "Ticket created successfully",
-                ticketNumber,
-                ticketId: result.insertId
-            });
-            res.json({
-                message: "Ticket created successfully",
-                ticketNumber,
-                ticketId: result.insertId
-            });
-        });
+            ticketId: result.insertId
+          });
+        }
+      );
     });
-});
+  });
+
 
 router.put("/tickets/:ticketId/status", (req, res) => {
     const { ticketId } = req.params;
