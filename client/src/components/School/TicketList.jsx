@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Card, Table, Badge, Button, Modal } from "react-bootstrap";
+import { Card, Table, Badge, Button } from "react-bootstrap";
 import { jwtDecode } from "jwt-decode";
 import axios from "axios";
 import Swal from "sweetalert2";
@@ -8,12 +8,109 @@ const TicketList = ({ status }) => {
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [showModal, setShowModal] = useState(false);
-  const [selectedTicket, setSelectedTicket] = useState(null);
   const [currentAttachments, setCurrentAttachments] = useState([]);
-  const [showAttachmentsModal, setShowAttachmentsModal] = useState(false);
-
+  
   const NON_ARCHIVABLE_STATUSES = ["In Progress", "On Hold"];
+
+  const handleViewTicket = (ticket) => {
+    Swal.fire({
+      title: 'Ticket Details',
+      html: `
+        <div class="container-fluid" style="font-size: 0.9rem; text-align: left;">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <p class="mb-2 text-left">
+                <strong>Ticket Number:</strong><br />
+                ${ticket.ticketNumber}
+              </p>
+            </div>
+            <div class="col-md-6">
+              <p class="mb-2 text-left">
+                <strong>Category:</strong><br />
+                ${ticket.category}
+              </p>
+            </div>
+            <div class="col-12">
+              <p class="mb-2 text-left">
+                <strong>Request:</strong><br />
+                ${ticket.request}
+              </p>
+            </div>
+            <div class="col-12">
+              <p class="mb-2 text-left">
+                <strong>Comments:</strong><br />
+                ${ticket.comments}
+              </p>
+            </div>
+            <div class="col-12">
+              <p class="mb-0 text-left">
+                <strong>Date:</strong><br />
+                ${new Date(ticket.date).toLocaleString()}
+              </p>
+            </div>
+          </div>
+        </div>
+      `,
+      width: '800px',
+      showCloseButton: true,
+      showConfirmButton: false,
+      didOpen: () => {
+        // Apply styles to Swal container
+        const content = Swal.getHtmlContainer();
+        if (content) {
+          content.style.textAlign = 'left';
+        }
+      }
+    });
+  };
+
+  const handleOpenAttachments = (attachments) => {
+    try {
+      const parsedAttachments = JSON.parse(attachments);
+      const attachmentHtml = parsedAttachments.map((filename) => `
+        <div class="col-sm-6 col-md-4 col-lg-3 mb-3">
+          <div class="border rounded p-3" style="text-align: center;">
+            <div style="font-size: 2rem; margin-bottom: 0.5rem;">
+              ${getFileIcon(filename)}
+            </div>
+            <div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.875rem; margin-bottom: 0.5rem;">
+              ${filename}
+            </div>
+            <button 
+              class="btn btn-link btn-sm"
+              style="padding: 0.25rem 0.5rem; font-size: 0.875rem;"
+              onclick="window.open('http://localhost:8080/uploads/${filename}', '_blank')"
+            >
+              Open File
+            </button>
+          </div>
+        </div>
+      `).join('');
+
+      Swal.fire({
+        title: 'Attachments',
+        html: `
+          <div class="container-fluid" style="text-align: left;">
+            <div class="row">
+              ${attachmentHtml}
+            </div>
+          </div>
+        `,
+        width: '800px',
+        showCloseButton: true,
+        showConfirmButton: false,
+        didOpen: () => {
+          // Apply styles to Swal container
+          const content = Swal.getHtmlContainer();
+          if (content) {
+            content.style.textAlign = 'left';
+          }
+        }
+      });
+    } catch (error) {
+      setError("Failed to load attachments");
+    }
+  };
 
   const handleArchiveTicket = async (ticketId) => {
     try {
@@ -28,16 +125,15 @@ const TicketList = ({ status }) => {
       });
   
       if (result.isConfirmed) {
+        await Swal.fire({
+          title: "Deleted!",
+          text: "The ticket has been deleted.",
+          icon: "success"
+        });
         await axios.put(`http://localhost:8080/tickets/${ticketId}/archive`);
         setTickets((prevTickets) =>
           prevTickets.filter((ticket) => ticket.ticketId !== ticketId)
         );
-  
-        await Swal.fire({
-          title: "Archived!",
-          text: "The ticket has been deleted.",
-          icon: "success"
-        });
       }
     } catch (error) {
       setError("Failed to delete ticket");
@@ -67,16 +163,6 @@ const TicketList = ({ status }) => {
     const interval = setInterval(fetchTickets, 30000);
     return () => clearInterval(interval);
   }, [status]);
-
-  const handleOpenAttachments = (attachments) => {
-    try {
-      const parsedAttachments = JSON.parse(attachments);
-      setCurrentAttachments(parsedAttachments);
-      setShowAttachmentsModal(true);
-    } catch (error) {
-      setError("Failed to load attachments");
-    }
-  };
 
   const getFileIcon = (filename) => {
     const ext = filename.split(".").pop().toLowerCase();
@@ -113,9 +199,9 @@ const TicketList = ({ status }) => {
   );
 
   return (
-    <div className="vh-90 d-flex flex-column" style={{ marginTop: '60px' }}> {/* Add top margin */}
+    <div className="vh-90 d-flex flex-column" style={{ marginTop: '60px' }}>
       <Card className="flex-grow-1 m-0 border-0 rounded-0">
-        <Card.Header className="py-3 sticky-top" style={{ top: '56px', backgroundColor: "transparent" }}> {/* Adjust sticky position */}
+        <Card.Header className="py-3 sticky-top" style={{ top: '56px', backgroundColor: "transparent" }}>
           <div className="container-fluid">
             <div className="d-flex justify-content-between align-items-center">
               <h5 className="mb-0" style={{color: '#294a70'}}>{status} Tickets</h5>
@@ -133,9 +219,9 @@ const TicketList = ({ status }) => {
               </div>
             </div>
           ) : (
-            <div className="table-responsive" style={{ height: 'calc(100vh - 126px)', overflowY: 'auto' }}> {/* Adjust height calculation */}
+            <div className="table-responsive" style={{ height: 'calc(100vh - 126px)', overflowY: 'auto' }}>
               <Table hover className="mb-0">
-                <thead className="sticky-top bg-white" style={{ top: '0' }}> {/* Reset sticky position for table header */}
+                <thead className="sticky-top bg-white" style={{ top: '0' }}>
                   <tr>
                     <th className="px-3" style={{color: '#294a70'}}>Ticket No.</th>
                     <th className="px-3 text-center" style={{color: '#294a70'}}>Category</th>
@@ -156,14 +242,11 @@ const TicketList = ({ status }) => {
                       </td>
                       <td className="px-3">{new Date(ticket.date).toLocaleDateString()}</td>
                       <td className="px-3">
-                        <div className="d-flex gap-2 flex-wrap ">
+                        <div className="d-flex gap-2 flex-wrap">
                           <Button
                             size="sm"
                             variant="primary"
-                            onClick={() => {
-                              setSelectedTicket(ticket);
-                              setShowModal(true);
-                            }}
+                            onClick={() => handleViewTicket(ticket)}
                           >
                             View
                           </Button>
@@ -195,92 +278,6 @@ const TicketList = ({ status }) => {
           )}
         </Card.Body>
       </Card>
-
-      {/* Ticket Detail Modal */}
-      <Modal 
-        show={showModal} 
-        onHide={() => setShowModal(false)} 
-        centered
-        size="lg"
-      >
-        <Modal.Header closeButton className="bg-light">
-          <Modal.Title>Ticket Details</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          {selectedTicket && (
-            <div className="container-fluid">
-              <div className="row g-3">
-                <div className="col-md-6">
-                  <p className="mb-2">
-                    <strong>Ticket Number:</strong><br />
-                    {selectedTicket.ticketNumber}
-                  </p>
-                </div>
-                <div className="col-md-6">
-                  <p className="mb-2">
-                    <strong>Category:</strong><br />
-                    {selectedTicket.category}
-                  </p>
-                </div>
-                <div className="col-12">
-                  <p className="mb-2">
-                    <strong>Request:</strong><br />
-                    {selectedTicket.request}
-                  </p>
-                </div>
-                <div className="col-12">
-                  <p className="mb-2">
-                    <strong>Comments:</strong><br />
-                    {selectedTicket.comments}
-                  </p>
-                </div>
-                <div className="col-12">
-                  <p className="mb-0">
-                    <strong>Date:</strong><br />
-                    {new Date(selectedTicket.date).toLocaleString()}
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-        </Modal.Body>
-      </Modal>
-
-      {/* Attachments Modal */}
-      <Modal
-        show={showAttachmentsModal}
-        onHide={() => setShowAttachmentsModal(false)}
-        centered
-        size="lg"
-      >
-        <Modal.Header closeButton className="bg-light">
-          <Modal.Title>Attachments</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <div className="row g-3">
-            {currentAttachments.map((filename, index) => (
-              <div key={index} className="col-sm-6 col-md-4 col-lg-3">
-                <div className="border rounded p-3 text-center h-100">
-                  <div className="mb-2" style={{ fontSize: "2rem" }}>
-                    {getFileIcon(filename)}
-                  </div>
-                  <div className="text-truncate small mb-2">
-                    {filename}
-                  </div>
-                  <Button
-                    variant="link"
-                    size="sm"
-                    className="mt-auto"
-                    onClick={() => window.open(`http://localhost:8080/uploads/${filename}`, "_blank")}
-                  >
-                    Open File
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </Modal.Body>
-      </Modal>
     </div>
   );
 };

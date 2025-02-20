@@ -140,6 +140,13 @@ const Navbar = () => {
             <LuTickets className="me-3 fs-5" />
             Ticket Request
           </a>
+          <a 
+            href="/recievebatch" 
+            className="nav-link text-dark d-flex align-items-center py-1 px-2 hover-effect"
+          >
+            <MdOutlineSpaceDashboard className="me-3 fs-5" />
+            Recieve Batch
+          </a>
 
           {/* Dropdown Menu */}
           <div className="nav-item">

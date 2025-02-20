@@ -10,6 +10,7 @@ import ProtectedRoute from "./components/Context/ProtectedRoutes";
 // School
 import SchoolDashboard from "./components/School/SchoolDashboard";
 import Ticket from "./components/School/Ticket";
+import RecieveBatch from "./components/School/RecieveBatch";
 import Completed from "./components/School/Status/Completed";
 import Pending from "./components/School/Status/Pending";
 import InProgress from "./components/School/Status/InProgress";
@@ -89,6 +90,14 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={["Staff"]}>
                 <Rejected />
+              </ProtectedRoute>
+            }
+          />
+           <Route
+            path="/recievebatch"
+            element={
+              <ProtectedRoute allowedRoles={["Staff"]}>
+                <RecieveBatch />
               </ProtectedRoute>
             }
           />

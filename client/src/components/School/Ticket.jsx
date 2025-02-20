@@ -5,6 +5,7 @@ import axios from "axios";
 import { jwtDecode } from "jwt-decode";
 import { FaRegTrashAlt } from "react-icons/fa";
 import { Container, Card, Col, Form, Row, FloatingLabel, Button, Modal } from "react-bootstrap";
+import "../../styles/CreateTicket.css";
 
 const Ticket = () => {
   const fileInputRef = useRef(null);
@@ -39,7 +40,6 @@ const Ticket = () => {
     }
   }, [formData.subcategory, formData.otherSubcategory]);
 
-  // Only fetch batches when category is Hardware
   useEffect(() => {
     const fetchBatches = async () => {
       if (formData.category !== "Hardware") {
@@ -135,83 +135,90 @@ const Ticket = () => {
       attachmentPreviews: prev.attachmentPreviews.filter((_, i) => i !== index),
     }));
   };
-// In Ticket.jsx - Updated handleSubmit function
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  setIsSubmitting(true);
-  setError("");
 
-  // Basic validation
-  if (!formData.requestor || !formData.category || !formData.request || !formData.comments) {
-      setError("Please fill in all required fields");
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setError("");
+    setMessage("");
+  
+    // Basic validation for all tickets
+    if (!formData.requestor || !formData.category || !formData.request || !formData.comments) {
+      setError("Please fill in all required fields.");
       setIsSubmitting(false);
       return;
-  }
-
-  // Hardware-specific validation
-  if (formData.category === "Hardware" && !selectedBatch) {
-      setError("Please select a batch for hardware requests");
+    }
+  
+    // Hardware-specific validation
+    if (formData.category === "Hardware" && !selectedBatch) {
+      setError("Please select a batch for hardware requests.");
       setIsSubmitting(false);
       return;
-  }
-
-  const data = new FormData();
-  data.append("requestor", formData.requestor);
-  data.append("category", formData.category);
-  data.append("request", formData.request);
-  data.append("comments", formData.comments);
-
-  // Only append batchId for Hardware category
-  if (formData.category === "Hardware") {
+    }
+  
+    const data = new FormData();
+    data.append("requestor", formData.requestor);
+    data.append("category", formData.category);
+    data.append("request", formData.request);
+    data.append("comments", formData.comments);
+  
+    // Only append batchId for Hardware tickets
+    if (formData.category === "Hardware") {
       data.append("batchId", selectedBatch);
-  }
-
-  // Handle attachments
-  formData.attachments.forEach(file => {
-      if (file.size > 5 * 1024 * 1024) {
-          setError("File size exceeds 5MB limit");
-          setIsSubmitting(false);
-          return;
+    }
+  
+    // Handle attachments
+    formData.attachments.forEach(file => {
+      if (file.size > 5 * 1024 * 1024) {  // 5MB limit
+        setError("One or more files exceed the 5MB size limit.");
+        setIsSubmitting(false);
+        return;
       }
       data.append("attachments", file);
-  });
-
-  try {
+    });
+  
+    try {
       const response = await axios.post("http://localhost:8080/createTickets", data, {
-          headers: { 
-              "Content-Type": "multipart/form-data"
-          }
+        headers: { 
+          "Content-Type": "multipart/form-data"
+        }
       });
-
+  
       setTicketNumber(response.data.ticketNumber);
-      setMessage("Ticket created successfully");
-      
-      // Reset form while keeping requestor
+      setMessage("Ticket created successfully.");
+  
+      // Reset form while preserving requestor
       setFormData(prev => ({
-          requestor: prev.requestor,
-          category: "",
-          subcategory: "",
-          otherSubcategory: "",
-          request: "",
-          comments: "",
-          attachments: [],
-          attachmentPreviews: [],
+        requestor: prev.requestor,
+        category: "",
+        subcategory: "",
+        otherSubcategory: "",
+        request: "",
+        comments: "",
+        attachments: [],
+        attachmentPreviews: [],
       }));
       setSelectedBatch("");
-      
+  
       if (fileInputRef.current) {
-          fileInputRef.current.value = '';
+        fileInputRef.current.value = '';
       }
-      
+  
       setShowModal(true);
-  } catch (error) {
+    } catch (error) {
       console.error("Error submitting ticket:", error);
-      setError(error.response?.data?.error || "Error submitting ticket. Please try again.");
+      if (error.response?.data?.error) {
+        setError(error.response?.data?.error);
+      } else {
+        setError("An error occurred while submitting the ticket. Please try again.");
+      }
       setShowModal(true);
-  } finally {
+    } finally {
       setIsSubmitting(false);
-  }
-};
+    }
+  };
+  
+  
   const { width } = useWindowSize();
   const sidebarWidth = width >= 768 ? "250px" : "0";
 
@@ -380,7 +387,7 @@ const handleSubmit = async (e) => {
                     variant="dark"
                     type="submit"
                     disabled={isSubmitting}
-                    className="px-4 py-2"
+                    className="px-4 py-2 buttonsubmit"
                     style={{ minWidth: "150px", backgroundColor: "#294a70", border: "none" }}
                   >
                     {isSubmitting ? "Submitting..." : "Submit"}

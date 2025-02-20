@@ -165,7 +165,7 @@ const Login = () => {
           </Form>
         </Card.Body>
 
-        <Link to="/request-deped-account" className="mt-3 text-decoration-none">Request New DepEd Account</Link>
+        <Link to="/request-deped-account" className="mt-3 text-decoration-none">Request DepEd Account</Link>
 
         <Card.Footer className="schoolBtn d-flex justify-content-center mb-3">
           

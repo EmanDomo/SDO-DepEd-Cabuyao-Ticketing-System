@@ -17,7 +17,6 @@ router.get("/schools", (req, res) => {
     });
 });
 
-// Get all batches
 router.get("/batches", (req, res) => {
     const query = "SELECT * FROM tbl_batches";
     conn.query(query, (err, result) => {
@@ -30,9 +29,25 @@ router.get("/batches", (req, res) => {
     });
 });
 
+router.get("/receivebatch/:schoolCode", (req, res) => {
+    const { schoolCode } = req.params;
+    console.log("Received schoolCode:", schoolCode); 
+
+    const query = "SELECT * FROM tbl_batches WHERE schoolCode = ? AND status = 'Pending'";
+
+    conn.query(query, [schoolCode], (err, result) => {
+        if (err) {
+            console.error("Error fetching batches:", err.message);
+            return res.status(500).json({ error: err.message });
+        }
+        console.log("Fetched batches from DB:", result); 
+        res.json(result);
+    });
+});
+
 // Get devices for selection
 router.get('/devices', (req, res) => {
-    const query = 'SELECT device_name FROM tbl_devices'; // Select device_name from your table
+    const query = 'SELECT device_name FROM tbl_devices';
     conn.query(query, (err, result) => {
         if (err) {
             console.error('Error fetching devices:', err.message);
