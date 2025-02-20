@@ -1,4 +1,7 @@
 node_modules
 
-/uploads
-/deped_uploads
+/deped_uploads/*
+!/deped_uploads/.gitkeep
+
+/uploads/*
+!/uploads/.gitkeep
