@@ -14,6 +14,7 @@ import {
   Button,
   Modal,
 } from "react-bootstrap";
+import Swal from 'sweetalert2';
 
 const Ticket = () => {
   const fileInputRef = useRef(null); // Add ref for file input
@@ -148,15 +149,16 @@ const Ticket = () => {
         data.append(key, value);
       }
     });
-    data.append("status", "In Progress");
+    data.append("status", "Pending ");
     formData.attachments.forEach(file => data.append("attachments", file));
   
     try {
       const response = await axios.post("http://localhost:8080/createTickets", data, {
         headers: { "Content-Type": "multipart/form-data" },
       });
+      
+      // Reset form
       setTicketNumber(response.data.ticketNumber);
-      setMessage(response.data.message);
       setFormData(prev => ({
         requestor: prev.requestor,
         category: "",
@@ -171,10 +173,28 @@ const Ticket = () => {
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
-      setShowModal(true);
+
+      // Show success message with SweetAlert2
+      Swal.fire({
+        title: 'Success!',
+        html: `
+          <p>${response.data.message}</p>
+          <p>Your Ticket Number: <strong>${response.data.ticketNumber}</strong></p>
+        `,
+        icon: 'success',
+        confirmButtonText: 'OK',
+        confirmButtonColor: '#294a70'
+      });
+
     } catch (error) {
       console.error("Error submitting ticket:", error);
-      setError(error.response?.data?.error || "Error submitting the ticket. Please try again.");
+      Swal.fire({
+        title: 'Error',
+        text: error.response?.data?.error || "Error submitting the ticket. Please try again.",
+        icon: 'error',
+        confirmButtonText: 'OK',
+        confirmButtonColor: '#294a70'
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -182,7 +202,6 @@ const Ticket = () => {
 
   const { width } = useWindowSize();
   const sidebarWidth = width >= 768 ? "250px" : "0";
-
   return (
     <div
       className="ticket-container"
@@ -196,12 +215,11 @@ const Ticket = () => {
     >
       <Nav />
       <Container fluid className="">
-        <h3 style={{ color: "#294a70" }}>Ticket Request</h3>
         <Row className="justify-content-center">
           <Col xs={12} sm={11} md={10} lg={8} xl={7}>
             <form onSubmit={handleSubmit}>
-              <Card className="shadow-sm">
-                <Card.Body className="p-4">
+              <Card className="shadow-sm mt-5" style={{height: '85vh', width: '100%', border: 'none'}}>
+                <Card.Body className="p-4" style={{overflow: 'auto'}}>
                   <h3 className="mb-4" style={{ color: "#294a70" }}>
                     Requestor: {formData.requestor}
                   </h3>

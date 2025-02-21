@@ -14,6 +14,7 @@ import { LuTickets } from "react-icons/lu";
 import { FaRegListAlt } from "react-icons/fa";
 import { FaRegUser } from "react-icons/fa";
 import Swal  from "sweetalert2";
+import { TbTruckDelivery } from "react-icons/tb";
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -144,7 +145,7 @@ const Navbar = () => {
             href="/recievebatch" 
             className="nav-link text-dark d-flex align-items-center py-1 px-2 hover-effect"
           >
-            <MdOutlineSpaceDashboard className="me-3 fs-5" />
+            <TbTruckDelivery className="me-3 fs-5" />
             Recieve Batch
           </a>
 
