@@ -24,7 +24,7 @@ app.use(batchRoutes);
 app.use(resetRoutes);
 app.use(depedRoutes);
 
-app.use('/uploads', express.static('./uploads'));
+app.use('/uploads', express.static(path.join(__dirname, "uploads")));
 app.use("/deped_uploads", express.static(path.join(__dirname, "deped_uploads")));
 
 app.listen(8080, () => {

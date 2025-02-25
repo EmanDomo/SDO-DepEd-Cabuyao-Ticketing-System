@@ -14,7 +14,7 @@ import {
   Button,
   Modal,
 } from "react-bootstrap";
-import Swal from "sweetalert2";
+import Swal from 'sweetalert2';
 
 const Ticket = () => {
   const fileInputRef = useRef(null); // Add ref for file input
@@ -28,6 +28,7 @@ const Ticket = () => {
     comments: "",
     attachments: [],
     attachmentPreviews: [],
+    selectedDevices: [] // Add this to track selected devices
   });
 
   const [ticketNumber, setTicketNumber] = useState(null);
@@ -36,7 +37,129 @@ const Ticket = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [batches, setBatches] = useState([]);
-  const [receivedBatches, setReceivedBatches] = useState([]);
+  // Add to your component state
+const [selectedDevices, setSelectedDevices] = useState([]);
+
+// Example device selection handler
+const handleDeviceSelect = (device) => {
+    setSelectedDevices(prev => [...prev, device]);
+};
+
+// Example device deselection handler
+const handleDeviceDeselect = (deviceId) => {
+    setSelectedDevices(prev => prev.filter(d => d.batch_devices_id !== deviceId));
+};
+
+const handleDeviceSelection = (deviceId, isChecked) => {
+  setFormData(prev => {
+    if (isChecked) {
+      return {
+        ...prev,
+        selectedDevices: [...prev.selectedDevices, deviceId]
+      };
+    } else {
+      return {
+        ...prev,
+        selectedDevices: prev.selectedDevices.filter(id => id !== deviceId)
+      };
+    }
+  });
+};
+
+const handleViewDevices = async (batchId) => {
+  try {
+    const response = await axios.get(`http://localhost:8080/batch/${batchId}/devices`);
+    const devices = response.data;
+
+    Swal.fire({
+      title: 'Batch Devices',
+      html: `
+        <div class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead>
+              <tr>
+                <th class="px-3" style="color: #294a70">Select</th>
+                <th class="px-3" style="color: #294a70">Device Type</th>
+                <th class="px-3" style="color: #294a70">Serial Number</th>
+                <th class="px-3" style="color: #294a70">Issue Description</th>
+              </tr>
+            </thead>
+            <tbody id="devices-table-body">
+              ${devices.map(device => {
+                const isSelected = selectedDevices.some(d => d.deviceId === device.device_number);
+                const existingDescription = isSelected 
+                  ? selectedDevices.find(d => d.deviceId === device.device_number).description 
+                  : '';
+
+                return `
+                  <tr>
+                    <td class="px-3">
+                      <input type="checkbox" class="device-checkbox" data-id="${device.device_number}" 
+                        ${isSelected ? 'checked' : ''}>
+                    </td>
+                    <td class="px-3">${device.device_type}</td>
+                    <td class="px-3">${device.device_number}</td>
+                    <td class="px-3">
+                      <div id="description-container-${device.device_number}" 
+                        style="display: ${isSelected ? 'block' : 'none'}">
+                        <textarea class="form-control issue-description" 
+                          data-id="${device.device_number}"
+                          placeholder="Describe the issue">${existingDescription || ''}</textarea>
+                      </div>
+                    </td>
+                  </tr>
+                `;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>
+      `,
+      width: '800px',
+      showCloseButton: true,
+      showConfirmButton: true,
+      confirmButtonText: 'Save Selections',
+      preConfirm: () => {
+        // Get all checked devices with their descriptions
+        const newSelectedDevices = Array.from(document.querySelectorAll(".device-checkbox:checked"))
+          .map(checkbox => {
+            const deviceId = checkbox.getAttribute("data-id");
+            const descriptionElem = document.querySelector(`.issue-description[data-id="${deviceId}"]`);
+            const description = descriptionElem ? descriptionElem.value : '';
+
+            return { deviceId, description };
+          });
+
+        setSelectedDevices(newSelectedDevices);
+        return newSelectedDevices;
+      },
+      didOpen: () => {
+        // Attach event listeners after the modal is fully opened
+        document.querySelectorAll('.device-checkbox').forEach(checkbox => {
+          checkbox.addEventListener('change', function() {
+            const deviceId = this.getAttribute('data-id');
+            const descriptionContainer = document.getElementById(`description-container-${deviceId}`);
+            if (this.checked) {
+              descriptionContainer.style.display = 'block';
+            } else {
+              descriptionContainer.style.display = 'none';
+            }
+          });
+        });
+
+        // Align content
+        const content = Swal.getHtmlContainer();
+        if (content) {
+          content.style.textAlign = 'left';
+        }
+      }
+    });
+  } catch (error) {
+    setError("Failed to load devices");
+    console.error("View devices error:", error);
+  }
+};
+
+
 
   useEffect(() => {
     if (formData.subcategory) {
@@ -65,7 +188,6 @@ const Ticket = () => {
       }
     }
   }, []);
-
   useEffect(() => {
     const fetchBatches = async () => {
       try {
@@ -80,24 +202,6 @@ const Ticket = () => {
 
     fetchBatches();
   }, []);
-
-  useEffect(() => {
-    const fetchReceivedBatches = async () => {
-      try {
-        const response = await axios.get(
-          "http://localhost:8080/received-batches"
-        );
-        setReceivedBatches(response.data);
-      } catch (error) {
-        console.error("Error fetching received batches:", error);
-        setError("Unable to load received batches. Please try again later.");
-      }
-    };
-
-    if (formData.category === "Hardware") {
-      fetchReceivedBatches();
-    }
-  }, [formData.category]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -150,40 +254,52 @@ const Ticket = () => {
     e.preventDefault();
     setIsSubmitting(true);
     setError("");
-
+  
+    console.log("Form Data before submission:", formData);
+    console.log("Raw selectedDevices before sending:", selectedDevices);
+    console.log("Stringified selectedDevices:", JSON.stringify(selectedDevices));
+  
     if (!formData.category || !formData.request || !formData.comments) {
       setError("Please fill in all required fields");
       setIsSubmitting(false);
       return;
     }
-
+  
     if (formData.category === "Hardware" && !formData.batch) {
       setError("Please select a batch for hardware issues");
       setIsSubmitting(false);
       return;
     }
-
+  
+    if (formData.category === "Hardware" && selectedDevices.length === 0) {
+      setError("Please select at least one device");
+      setIsSubmitting(false);
+      return;
+    }
+  
     const data = new FormData();
     Object.entries(formData).forEach(([key, value]) => {
-      if (key !== "attachments" && key !== "attachmentPreviews") {
+      if (key !== 'attachments' && key !== 'attachmentPreviews') {
         data.append(key, value);
       }
     });
-    data.append("status", "Pending ");
-    formData.attachments.forEach((file) => data.append("attachments", file));
-
+    data.append("status", "Pending");
+  
+    // Ensure selectedDevices is properly stringified
+    data.append("selectedDevices", JSON.stringify(selectedDevices));
+  
+    formData.attachments.forEach(file => data.append("attachments", file));
+  
     try {
-      const response = await axios.post(
-        "http://localhost:8080/createTickets",
-        data,
-        {
-          headers: { "Content-Type": "multipart/form-data" },
-        }
-      );
-
-      // Reset form
+      const response = await axios.post("http://localhost:8080/createTickets", data, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+  
+      console.log("Response from server:", response.data);
+  
       setTicketNumber(response.data.ticketNumber);
-      setFormData((prev) => ({
+      setSelectedDevices([]);
+      setFormData(prev => ({
         requestor: prev.requestor,
         category: "",
         subcategory: "",
@@ -195,35 +311,49 @@ const Ticket = () => {
         batch: "",
       }));
       if (fileInputRef.current) {
-        fileInputRef.current.value = "";
+        fileInputRef.current.value = '';
       }
-
-      // Show success message with SweetAlert2
+  
       Swal.fire({
-        title: "Success!",
+        title: 'Success!',
         html: `
           <p>${response.data.message}</p>
           <p>Your Ticket Number: <strong>${response.data.ticketNumber}</strong></p>
         `,
-        icon: "success",
-        confirmButtonText: "OK",
-        confirmButtonColor: "#294a70",
+        icon: 'success',
+        confirmButtonText: 'OK',
+        confirmButtonColor: '#294a70'
       });
+  
     } catch (error) {
       console.error("Error submitting ticket:", error);
       Swal.fire({
-        title: "Error",
-        text:
-          error.response?.data?.error ||
-          "Error submitting the ticket. Please try again.",
-        icon: "error",
-        confirmButtonText: "OK",
-        confirmButtonColor: "#294a70",
+        title: 'Error',
+        text: error.response?.data?.error || "Error submitting the ticket. Please try again.",
+        icon: 'error',
+        confirmButtonText: 'OK',
+        confirmButtonColor: '#294a70'
       });
     } finally {
       setIsSubmitting(false);
     }
   };
+  
+
+  const renderDeviceCheckbox = (device) => (
+    <div key={device.batch_devices_id} className="form-check">
+      <input 
+        className="form-check-input" 
+        type="checkbox" 
+        id={`device-${device.batch_devices_id}`}
+        checked={formData.selectedDevices.includes(device.batch_devices_id)}
+        onChange={(e) => handleDeviceSelection(device.batch_devices_id, e.target.checked)}
+      />
+      <label className="form-check-label" htmlFor={`device-${device.batch_devices_id}`}>
+        {device.device_name}
+      </label>
+    </div>
+  );
 
   const { width } = useWindowSize();
   const sidebarWidth = width >= 768 ? "250px" : "0";
@@ -243,11 +373,8 @@ const Ticket = () => {
         <Row className="justify-content-center">
           <Col xs={12} sm={11} md={10} lg={8} xl={7}>
             <form onSubmit={handleSubmit}>
-              <Card
-                className="shadow-sm mt-5"
-                style={{ height: "85vh", width: "100%", border: "none" }}
-              >
-                <Card.Body className="p-4" style={{ overflow: "auto" }}>
+              <Card className="shadow-sm mt-5" style={{height: '85vh', width: '100%', border: 'none'}}>
+                <Card.Body className="p-4" style={{overflow: 'auto'}}>
                   <h3 className="mb-4" style={{ color: "#294a70" }}>
                     Requestor: {formData.requestor}
                   </h3>
@@ -310,51 +437,72 @@ const Ticket = () => {
                     </Row>
                   )}
 
-                  {formData.category === "Hardware" && (
-                    <Row className="mb-3">
-                      <Form.Label column xs={12} sm={3} md={4}>
-                        Select Batch
-                      </Form.Label>
-                      <Col xs={12} sm={9} md={12}>
-                        <Form.Select
-                          name="batch"
-                          value={formData.batch}
-                          onChange={handleChange}
-                          required={formData.category === "Hardware"}
-                        >
-                          <option value="">Select Batch</option>
-                          {receivedBatches.map((batch) => (
-                            <option key={batch.batch_id} value={batch.batch_id}>
-                              {batch.batch_number} - {batch.school_name}{" "}
-                              (Received:{" "}
-                              {new Date(
-                                batch.received_date
-                              ).toLocaleDateString()}
-                              )
-                            </option>
-                          ))}
-                        </Form.Select>
-                      </Col>
-                    </Row>
-                  )}
+{formData.category === "Hardware" && (
+  <Row className="mb-3">
+    <Form.Label column xs={12} sm={3} md={4}>
+      Select Batch
+    </Form.Label>
+    <Col xs={12} sm={9} md={12}>
+      <Form.Select
+        name="batch"
+        value={formData.batch}
+        onChange={handleChange}
+        required={formData.category === "Hardware"}
+      >
+        <option value="">Select Batch</option>
+        {batches.map((batch) => (
+          <option key={batch.batch_id} value={batch.batch_id}>
+            {batch.batch_number} - {batch.school_name}
+          </option>
+        ))}
+      </Form.Select>
+    </Col>
+  </Row>
+)}
 
-                  {formData.subcategory === "Other" && (
-                    <Row className="mb-3">
-                      <Form.Label column xs={12} sm={3} md={4}>
-                        Specify Issue
-                      </Form.Label>
-                      <Col xs={12} sm={9} md={12}>
-                        <Form.Control
-                          type="text"
-                          name="otherSubcategory"
-                          value={formData.otherSubcategory}
-                          onChange={handleChange}
-                          placeholder="Please specify your issue"
-                          required
-                        />
-                      </Col>
-                    </Row>
-                  )}
+{formData.batch && (
+  <Row className="mb-3">
+    <Col xs={12}>
+      <div className="d-flex gap-2 flex-wrap">
+        <Button
+          size="sm"
+          variant="primary"
+          onClick={() => handleViewDevices(formData.batch)}
+        >
+          View Devices
+        </Button>
+        {status === "Pending" && (
+          <Button
+            size="sm"
+            variant="success"
+            onClick={() => handleReceiveBatch(formData.batch)}
+          >
+            Receive
+          </Button>
+        )}
+      </div>
+    </Col>
+  </Row>
+)}
+
+{formData.subcategory === "Other" && (
+  <Row className="mb-3">
+    <Form.Label column xs={12} sm={3} md={4}>
+      Specify Issue
+    </Form.Label>
+    <Col xs={12} sm={9} md={12}>
+      <Form.Control
+        type="text"
+        name="otherSubcategory"
+        value={formData.otherSubcategory}
+        onChange={handleChange}
+        placeholder="Please specify your issue"
+        required
+      />
+    </Col>
+  </Row>
+)}
+
 
                   {/* Comments */}
                   <Row className="mb-3">
