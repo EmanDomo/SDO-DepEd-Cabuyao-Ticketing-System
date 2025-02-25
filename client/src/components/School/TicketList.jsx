@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from "react";
-import { Card, Table, Badge, Button } from "react-bootstrap";
+import { Card, Table, Badge, Button, Form, InputGroup } from "react-bootstrap";
 import { jwtDecode } from "jwt-decode";
 import axios from "axios";
 import Swal from "sweetalert2";
+import { FaSearch } from "react-icons/fa";
 
 const TicketList = ({ status }) => {
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [currentAttachments, setCurrentAttachments] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
   
   const NON_ARCHIVABLE_STATUSES = ["In Progress", "On Hold"];
 
@@ -184,6 +186,13 @@ const TicketList = ({ status }) => {
     }
   };
 
+  // Filter tickets based on search term
+  const filteredTickets = tickets.filter(ticket => 
+    ticket.ticketNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    ticket.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    ticket.request.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   if (loading) return (
     <div className="d-flex justify-content-center align-items-center vh-100">
       <div className="spinner-border" role="status">
@@ -203,23 +212,48 @@ const TicketList = ({ status }) => {
       <Card className="flex-grow-1 m-0 border-0 rounded-0">
         <Card.Header className="py-3 sticky-top" style={{ top: '56px', backgroundColor: "transparent" }}>
           <div className="container-fluid">
-            <div className="d-flex justify-content-between align-items-center">
+            <div className="d-flex justify-content-between align-items-center mb-3">
               <h5 className="mb-0" style={{color: '#294a70'}}>{status} Tickets</h5>
               <span className="badge text-light p-2" style={{backgroundColor: '#294a70'}}>
-                {tickets.length} Tickets
+                {filteredTickets.length} Tickets
               </span>
+            </div>
+            <div className="row">
+              <div className="col-md-6 col-lg-4">
+                <InputGroup>
+                  <InputGroup.Text style={{backgroundColor: '#294a70', color: 'white'}}>
+                    <FaSearch />
+                  </InputGroup.Text>
+                  <Form.Control
+                    placeholder="Search tickets..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    aria-label="Search tickets"
+                  />
+                  {searchTerm && (
+                    <Button 
+                      variant="outline-secondary" 
+                      onClick={() => setSearchTerm("")}
+                    >
+                      Clear
+                    </Button>
+                  )}
+                </InputGroup>
+              </div>
             </div>
           </div>
         </Card.Header>
         <Card.Body className="p-0">
-          {tickets.length === 0 ? (
+          {filteredTickets.length === 0 ? (
             <div className="d-flex justify-content-center align-items-center h-100">
               <div className="text-muted">
-                No {status.toLowerCase()} tickets found.
+                {searchTerm 
+                  ? "No tickets match your search criteria." 
+                  : `No ${status.toLowerCase()} tickets found.`}
               </div>
             </div>
           ) : (
-            <div className="table-responsive" style={{ height: 'calc(100vh - 126px)', overflowY: 'auto' }}>
+            <div className="table-responsive" style={{ height: 'calc(100vh - 180px)', overflowY: 'auto' }}>
               <Table hover className="mb-0">
                 <thead className="sticky-top bg-white" style={{ top: '0' }}>
                   <tr>
@@ -231,7 +265,7 @@ const TicketList = ({ status }) => {
                   </tr>
                 </thead>
                 <tbody>
-                  {tickets.map((ticket) => (
+                  {filteredTickets.map((ticket) => (
                     <tr key={ticket.ticketNumber}>
                       <td className="px-3">{ticket.ticketNumber}</td>
                       <td className="px-3">{ticket.category}</td>

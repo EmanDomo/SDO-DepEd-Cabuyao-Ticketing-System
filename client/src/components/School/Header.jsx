@@ -155,7 +155,7 @@ const Navbar = () => {
         <div className="nav flex-column">
           <a 
             href="/schooldashboard" 
-            className={`nav-link text-dark d-flex align-items-center py-1 px-2 hover-effect ${isActive('/schooldashboard') ? 'active-nav-item' : ''}`}
+            className={`nav-link text-dark d-flex align-items-center py-3 px-2 hover-effect ${isActive('/schooldashboard') ? 'active-nav-item' : ''}`}
           >
             <MdOutlineSpaceDashboard className="me-3 fs-5" />
             <span style={{fontSize: '15px'}}>Dashboard</span> 

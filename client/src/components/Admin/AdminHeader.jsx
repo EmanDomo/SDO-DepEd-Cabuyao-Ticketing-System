@@ -229,7 +229,6 @@ const AdminHeader = ({
               </button>
             )}
             <a className="navbar-brand" href="#">
-              <b className="d-none d-lg-inline">Admin Dashboard</b>
               <span className="fs-6 ms-lg-4 ms-0 d-lg-inline">
                 <i>Username: {username}</i>
                 <Badge bg="light" className="ms-3" style={{ color: "#294a70" }}>

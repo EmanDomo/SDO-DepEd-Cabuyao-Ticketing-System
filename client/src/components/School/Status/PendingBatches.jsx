@@ -11,7 +11,7 @@ const PendingBatches = () => {
   return (
     <div style={{ marginLeft: sidebarWidth, minHeight: '100vh' }}>
       <Nav />
-      <Container fluid className="d-flex align-items-center justify-content-center" style={{ minHeight: 'calc(100vh - 56px)' }}>
+      <Container fluid className="" style={{ minHeight: 'calc(100vh - 56px)' }}>
         <Row className="w-100">
           <Col xs={12} lg={10} className="mx-auto">
             <BatchList status="Pending" />

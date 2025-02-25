@@ -194,36 +194,38 @@ const AdminDashboard = () => {
 
         {/* Search and Filter */}
         <div className="row search-filter-container flex-wrap">
-  <div className="col-6 d-flex justify-content-start">
-    <Form.Control
-      type="text"
-      placeholder="Search"
-      value={searchTerm}
-      onChange={(e) => setSearchTerm(e.target.value)}
-      className="w-100"
-      style={{maxWidth: "50%"}}
-    />
-  </div>
-  <div className="col-6 d-flex justify-content-end">
-    <Form.Select
-      value={filterStatus}
-      onChange={(e) => setFilterStatus(e.target.value)}
-      className="w-100"
-      style={{maxWidth: "25%"}}
-    >
-      <option value="all">All Status</option>
-      {activeTab === "tickets" ? statusOptions.map((status) => (
-        <option key={status} value={status}>
-          {status}
-        </option>
-      )) : accountStatusOptions.map((status) => (
-        <option key={status} value={status}>
-          {status}
-        </option>
-      ))}
-    </Form.Select>
-  </div>
-</div>
+          <div className="col-6 d-flex justify-content-start">
+            <Form.Control
+              type="text"
+              placeholder="Search"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-100"
+              style={{ maxWidth: "50%" }}
+            />
+          </div>
+          <div className="col-6 d-flex justify-content-end">
+            <Form.Select
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value)}
+              className="w-100"
+              style={{ maxWidth: "25%" }}
+            >
+              <option value="all">All Status</option>
+              {activeTab === "tickets"
+                ? statusOptions.map((status) => (
+                    <option key={status} value={status}>
+                      {status}
+                    </option>
+                  ))
+                : accountStatusOptions.map((status) => (
+                    <option key={status} value={status}>
+                      {status}
+                    </option>
+                  ))}
+            </Form.Select>
+          </div>
+        </div>
 
         {/* Content Based on Active Tab */}
         <Tab.Container activeKey={activeTab}>

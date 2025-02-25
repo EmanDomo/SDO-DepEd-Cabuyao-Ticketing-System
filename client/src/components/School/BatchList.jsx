@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from "react";
-import { Card, Table, Button } from "react-bootstrap";
+import { Card, Table, Button, Form, InputGroup } from "react-bootstrap";
 import { jwtDecode } from "jwt-decode";
 import axios from "axios";
 import Swal from "sweetalert2";
+import { FaSearch } from "react-icons/fa";
 
 const BatchList = ({ status }) => {
   const [batches, setBatches] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
 
   const handleViewDevices = async (batchId) => {
     try {
@@ -104,6 +106,13 @@ const BatchList = ({ status }) => {
     return () => clearInterval(interval);
   }, [status]);
 
+  // Filter batches based on search term
+  const filteredBatches = batches.filter(batch => 
+    batch.batch_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    batch.school_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    batch.status.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   if (loading) return (
     <div className="d-flex justify-content-center align-items-center vh-100">
       <div className="spinner-border" role="status">
@@ -123,23 +132,48 @@ const BatchList = ({ status }) => {
       <Card className="flex-grow-1 m-0 border-0 rounded-0">
         <Card.Header className="py-3 sticky-top" style={{ top: '56px', backgroundColor: "transparent" }}>
           <div className="container-fluid">
-            <div className="d-flex justify-content-between align-items-center">
+            <div className="d-flex justify-content-between align-items-center mb-3">
               <h5 className="mb-0" style={{color: '#294a70'}}>{status} Batches</h5>
               <span className="badge text-light p-2" style={{backgroundColor: '#294a70'}}>
-                {batches.length} Batches
+                {filteredBatches.length} Batches
               </span>
+            </div>
+            <div className="row">
+              <div className="col-md-6 col-lg-4">
+                <InputGroup>
+                  <InputGroup.Text style={{backgroundColor: '#294a70', color: 'white'}}>
+                    <FaSearch />
+                  </InputGroup.Text>
+                  <Form.Control
+                    placeholder="Search batches..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    aria-label="Search batches"
+                  />
+                  {searchTerm && (
+                    <Button 
+                      variant="outline-secondary" 
+                      onClick={() => setSearchTerm("")}
+                    >
+                      Clear
+                    </Button>
+                  )}
+                </InputGroup>
+              </div>
             </div>
           </div>
         </Card.Header>
         <Card.Body className="p-0">
-          {batches.length === 0 ? (
+          {filteredBatches.length === 0 ? (
             <div className="d-flex justify-content-center align-items-center h-100">
               <div className="text-muted">
-                No {status.toLowerCase()} batches found.
+                {searchTerm 
+                  ? "No batches match your search criteria." 
+                  : `No ${status.toLowerCase()} batches found.`}
               </div>
             </div>
           ) : (
-            <div className="table-responsive" style={{ height: 'calc(100vh - 126px)', overflowY: 'auto' }}>
+            <div className="table-responsive" style={{ height: 'calc(100vh - 180px)', overflowY: 'auto' }}>
               <Table hover className="mb-0">
                 <thead className="sticky-top bg-white" style={{ top: '0' }}>
                   <tr>
@@ -154,7 +188,7 @@ const BatchList = ({ status }) => {
                   </tr>
                 </thead>
                 <tbody>
-                  {batches.map((batch) => (
+                  {filteredBatches.map((batch) => (
                     <tr key={batch.batch_id}>
                       <td className="px-3">{batch.batch_number}</td>
                       <td className="px-3">{batch.school_name}</td>
