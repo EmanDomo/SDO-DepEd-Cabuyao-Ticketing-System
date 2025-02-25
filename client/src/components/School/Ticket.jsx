@@ -14,7 +14,7 @@ import {
   Button,
   Modal,
 } from "react-bootstrap";
-import Swal from 'sweetalert2';
+import Swal from "sweetalert2";
 
 const Ticket = () => {
   const fileInputRef = useRef(null); // Add ref for file input
@@ -36,6 +36,7 @@ const Ticket = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [batches, setBatches] = useState([]);
+  const [receivedBatches, setReceivedBatches] = useState([]);
 
   useEffect(() => {
     if (formData.subcategory) {
@@ -64,6 +65,7 @@ const Ticket = () => {
       }
     }
   }, []);
+
   useEffect(() => {
     const fetchBatches = async () => {
       try {
@@ -78,6 +80,24 @@ const Ticket = () => {
 
     fetchBatches();
   }, []);
+
+  useEffect(() => {
+    const fetchReceivedBatches = async () => {
+      try {
+        const response = await axios.get(
+          "http://localhost:8080/received-batches"
+        );
+        setReceivedBatches(response.data);
+      } catch (error) {
+        console.error("Error fetching received batches:", error);
+        setError("Unable to load received batches. Please try again later.");
+      }
+    };
+
+    if (formData.category === "Hardware") {
+      fetchReceivedBatches();
+    }
+  }, [formData.category]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -130,36 +150,40 @@ const Ticket = () => {
     e.preventDefault();
     setIsSubmitting(true);
     setError("");
-  
+
     if (!formData.category || !formData.request || !formData.comments) {
       setError("Please fill in all required fields");
       setIsSubmitting(false);
       return;
     }
-  
+
     if (formData.category === "Hardware" && !formData.batch) {
       setError("Please select a batch for hardware issues");
       setIsSubmitting(false);
       return;
     }
-  
+
     const data = new FormData();
     Object.entries(formData).forEach(([key, value]) => {
-      if (key !== 'attachments' && key !== 'attachmentPreviews') {
+      if (key !== "attachments" && key !== "attachmentPreviews") {
         data.append(key, value);
       }
     });
     data.append("status", "Pending ");
-    formData.attachments.forEach(file => data.append("attachments", file));
-  
+    formData.attachments.forEach((file) => data.append("attachments", file));
+
     try {
-      const response = await axios.post("http://localhost:8080/createTickets", data, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-      
+      const response = await axios.post(
+        "http://localhost:8080/createTickets",
+        data,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        }
+      );
+
       // Reset form
       setTicketNumber(response.data.ticketNumber);
-      setFormData(prev => ({
+      setFormData((prev) => ({
         requestor: prev.requestor,
         category: "",
         subcategory: "",
@@ -171,29 +195,30 @@ const Ticket = () => {
         batch: "",
       }));
       if (fileInputRef.current) {
-        fileInputRef.current.value = '';
+        fileInputRef.current.value = "";
       }
 
       // Show success message with SweetAlert2
       Swal.fire({
-        title: 'Success!',
+        title: "Success!",
         html: `
           <p>${response.data.message}</p>
           <p>Your Ticket Number: <strong>${response.data.ticketNumber}</strong></p>
         `,
-        icon: 'success',
-        confirmButtonText: 'OK',
-        confirmButtonColor: '#294a70'
+        icon: "success",
+        confirmButtonText: "OK",
+        confirmButtonColor: "#294a70",
       });
-
     } catch (error) {
       console.error("Error submitting ticket:", error);
       Swal.fire({
-        title: 'Error',
-        text: error.response?.data?.error || "Error submitting the ticket. Please try again.",
-        icon: 'error',
-        confirmButtonText: 'OK',
-        confirmButtonColor: '#294a70'
+        title: "Error",
+        text:
+          error.response?.data?.error ||
+          "Error submitting the ticket. Please try again.",
+        icon: "error",
+        confirmButtonText: "OK",
+        confirmButtonColor: "#294a70",
       });
     } finally {
       setIsSubmitting(false);
@@ -218,8 +243,11 @@ const Ticket = () => {
         <Row className="justify-content-center">
           <Col xs={12} sm={11} md={10} lg={8} xl={7}>
             <form onSubmit={handleSubmit}>
-              <Card className="shadow-sm mt-5" style={{height: '85vh', width: '100%', border: 'none'}}>
-                <Card.Body className="p-4" style={{overflow: 'auto'}}>
+              <Card
+                className="shadow-sm mt-5"
+                style={{ height: "85vh", width: "100%", border: "none" }}
+              >
+                <Card.Body className="p-4" style={{ overflow: "auto" }}>
                   <h3 className="mb-4" style={{ color: "#294a70" }}>
                     Requestor: {formData.requestor}
                   </h3>
@@ -295,9 +323,14 @@ const Ticket = () => {
                           required={formData.category === "Hardware"}
                         >
                           <option value="">Select Batch</option>
-                          {batches.map((batch) => (
+                          {receivedBatches.map((batch) => (
                             <option key={batch.batch_id} value={batch.batch_id}>
-                              {batch.batch_number} - {batch.school_name}
+                              {batch.batch_number} - {batch.school_name}{" "}
+                              (Received:{" "}
+                              {new Date(
+                                batch.received_date
+                              ).toLocaleDateString()}
+                              )
                             </option>
                           ))}
                         </Form.Select>

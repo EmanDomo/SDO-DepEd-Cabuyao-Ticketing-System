@@ -162,4 +162,102 @@ router.get("/nextBatchNumber", (req, res) => {
 //     });
 // });
 
+router.get("/received-batches", (req, res) => {
+    const query = `
+        SELECT 
+            batch_id,
+            batch_number,
+            school_name,
+            received_date
+        FROM tbl_batches 
+        WHERE status = 'Delivered' 
+        AND received_date IS NOT NULL
+        ORDER BY received_date DESC
+    `;
+    
+    conn.query(query, (err, result) => {
+        if (err) {
+            console.error("Error fetching received batches:", err.message);
+            return res.status(500).json({ error: "Failed to fetch received batches" });
+        }
+        res.json(result);
+    });
+});
+
+router.put("/receivebatch/:batchId", (req, res) => {
+    const { batchId } = req.params;
+    const query = `
+        UPDATE tbl_batches 
+        SET status = 'Delivered', 
+            received_date = CURRENT_DATE() 
+        WHERE batch_id = ?
+    `;
+    
+    conn.query(query, [batchId], (err, result) => {
+        if (err) {
+            console.error("Error receiving batch:", err.message);
+            return res.status(500).json({ error: "Failed to receive batch" });
+        }
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: "Batch not found" });
+        }
+        res.json({ message: "Batch received successfully" });
+    });
+});
+
+router.get("/receivebatch/:schoolCode/pending", (req, res) => {
+    const { schoolCode } = req.params;
+    const query = `
+        SELECT * FROM tbl_batches 
+        WHERE schoolCode = ? 
+        AND status = 'Pending'
+        ORDER BY send_date DESC
+    `;
+    
+    conn.query(query, [schoolCode], (err, result) => {
+        if (err) {
+            console.error("Error fetching pending batches:", err.message);
+            return res.status(500).json({ error: "Failed to fetch pending batches" });
+        }
+        res.json(result);
+    });
+});
+
+// Get received batches for a school
+router.get("/receivebatch/:schoolCode/received", (req, res) => {
+    const { schoolCode } = req.params;
+    const query = `
+        SELECT * FROM tbl_batches 
+        WHERE schoolCode = ? 
+        AND status = 'Delivered'
+        ORDER BY received_date DESC
+    `;
+    
+    conn.query(query, [schoolCode], (err, result) => {
+        if (err) {
+            console.error("Error fetching received batches:", err.message);
+            return res.status(500).json({ error: "Failed to fetch received batches" });
+        }
+        res.json(result);
+    });
+});
+
+router.get("/batch/:batchId/devices", (req, res) => {
+    const { batchId } = req.params;
+    const query = `
+        SELECT device_type, device_number
+        FROM tbl_batch_devices
+        WHERE batch_id = ?
+        ORDER BY device_type
+    `;
+    
+    conn.query(query, [batchId], (err, result) => {
+        if (err) {
+            console.error("Error fetching batch devices:", err.message);
+            return res.status(500).json({ error: "Failed to fetch batch devices" });
+        }
+        res.json(result);
+    });
+});
+
 module.exports = router;

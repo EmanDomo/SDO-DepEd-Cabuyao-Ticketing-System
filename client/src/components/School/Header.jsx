@@ -13,7 +13,7 @@ import {
 import { LuTickets } from "react-icons/lu";
 import { FaRegListAlt } from "react-icons/fa";
 import { FaRegUser } from "react-icons/fa";
-import Swal  from "sweetalert2";
+import Swal from "sweetalert2";
 import { TbTruckDelivery } from "react-icons/tb";
 
 const Navbar = () => {
@@ -24,8 +24,10 @@ const Navbar = () => {
   const { logout } = useAuth();
   const { width } = useWindowSize();
   const [showSidebar, setShowSidebar] = useState(false);
-  const [showDropdown, setShowDropdown] = useState(false);
-  const dropdownRef = useRef(null);
+  const [showBatchDropdown, setShowBatchDropdown] = useState(false);
+  const [showTicketDropdown, setShowTicketDropdown] = useState(false);
+  const batchDropdownRef = useRef(null);
+  const ticketDropdownRef = useRef(null);
   const offcanvasContentRef = useRef(null);
   const sidebarRef = useRef(null);
 
@@ -79,7 +81,6 @@ const Navbar = () => {
   const handleLogout = () => {
     Swal.fire({
       title: "Are you sure you want to logout?",
-      // text: "You won't be able to revert this!",
       icon: "warning",
       showCancelButton: true,
       confirmButtonColor: "#3085d6",
@@ -87,20 +88,20 @@ const Navbar = () => {
       confirmButtonText: "Yes"
     }).then((result) => {
       if (result.isConfirmed) {
-        // Swal.fire({
-        //   title: "Deleted!",
-        //   text: "Your file has been deleted.",
-        //   icon: "success"
-        // });
         logout();
-    navigate("/");
+        navigate("/");
       }
     });
-    
   };
 
-  const toggleDropdown = () => {
-    setShowDropdown(!showDropdown);
+  const toggleBatchDropdown = () => {
+    setShowBatchDropdown(!showBatchDropdown);
+    setShowTicketDropdown(false); // Close other dropdown
+  };
+
+  const toggleTicketDropdown = () => {
+    setShowTicketDropdown(!showTicketDropdown);
+    setShowBatchDropdown(false); // Close other dropdown
   };
 
   const SidebarContent = () => (
@@ -108,13 +109,13 @@ const Navbar = () => {
       {/* Header */}
       <div className="sidebar-header">
         <div className="d-flex">
-      <img
+          <img
             alt="Logo"
             src={Logo}
             className="schoolLogo"
             style={{width: '40px'}}
           />
-        <h5 className="mt-2 ms-2">SDO Cabuyao</h5>
+          <h5 className="mt-2 ms-2">SDO Cabuyao</h5>
         </div>
         <div className="">
           <FaRegUser className="m-auto mt-4 my-2" style={{fontSize: '60px'}}/>
@@ -141,19 +142,47 @@ const Navbar = () => {
             <LuTickets className="me-3 fs-5" />
             Ticket Request
           </a>
-          <a 
-            href="/recievebatch" 
-            className="nav-link text-dark d-flex align-items-center py-1 px-2 hover-effect"
-          >
-            <TbTruckDelivery className="me-3 fs-5" />
-            Recieve Batch
-          </a>
+          
+          {/* Batch Management Dropdown */}
+          <div className="nav-item">
+            <button
+              className="nav-link text-dark d-flex align-items-center justify-content-between w-100 py-1 px-2 border-0 bg-transparent"
+              onClick={toggleBatchDropdown}
+              style={{ cursor: 'pointer' }}
+            >
+              <div className="d-flex align-items-center">
+                <TbTruckDelivery className="me-3 fs-5" />
+                Batch Management
+              </div>
+              <MdKeyboardArrowDown 
+                className={`fs-5 transition-transform ${showBatchDropdown ? 'rotate-180' : ''}`}
+                style={{ transition: 'transform 0.3s ease' }}
+              />
+            </button>
+            <div 
+              ref={batchDropdownRef}
+              className="dropdown-menu-custom"
+              style={{
+                maxHeight: showBatchDropdown ? '1000px' : '0',
+                opacity: showBatchDropdown ? 1 : 0,
+                transition: 'all 0.3s ease-in-out',
+                overflow: 'hidden'
+              }}
+            >
+              <a href="/pendingbatches" className="nav-link text-dark py-2 px-4 dropdown-item hover-effect">
+                Pending 
+              </a>
+              <a href="/receivedbatches" className="nav-link text-dark py-2 px-4 dropdown-item hover-effect">
+                Completed 
+              </a>
+            </div>
+          </div>
 
-          {/* Dropdown Menu */}
+          {/* Ticket Management Dropdown */}
           <div className="nav-item">
             <button
               className="nav-link text-dark d-flex align-items-center justify-content-between w-100 py-3 px-2 border-0 bg-transparent"
-              onClick={toggleDropdown}
+              onClick={toggleTicketDropdown}
               style={{ cursor: 'pointer' }}
             >
               <div className="d-flex align-items-center">
@@ -161,16 +190,16 @@ const Navbar = () => {
                 Ticket Management
               </div>
               <MdKeyboardArrowDown 
-                className={`fs-5 transition-transform ${showDropdown ? 'rotate-180' : ''}`}
+                className={`fs-5 transition-transform ${showTicketDropdown ? 'rotate-180' : ''}`}
                 style={{ transition: 'transform 0.3s ease' }}
               />
             </button>
             <div 
-              ref={dropdownRef}
+              ref={ticketDropdownRef}
               className="dropdown-menu-custom"
               style={{
-                maxHeight: showDropdown ? '1000px' : '0',
-                opacity: showDropdown ? 1 : 0,
+                maxHeight: showTicketDropdown ? '1000px' : '0',
+                opacity: showTicketDropdown ? 1 : 0,
                 transition: 'all 0.3s ease-in-out',
                 overflow: 'hidden'
               }}

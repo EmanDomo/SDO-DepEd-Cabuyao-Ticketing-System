@@ -10,12 +10,14 @@ import ProtectedRoute from "./components/Context/ProtectedRoutes";
 // School
 import SchoolDashboard from "./components/School/SchoolDashboard";
 import Ticket from "./components/School/Ticket";
-import RecieveBatch from "./components/School/RecieveBatch";
+import ReceiveBatch from "./components/School/ReceiveBatch";
 import Completed from "./components/School/Status/Completed";
 import Pending from "./components/School/Status/Pending";
 import InProgress from "./components/School/Status/InProgress";
 import OnHold from "./components/School/Status/OnHold";
 import Rejected from "./components/School/Status/Rejected";
+import ReceivedBatches from "./components/School/Status/ReceivedBatches";
+import PendingBatches from "./components/School/Status/PendingBatches";
 
 // Admin
 import AdminDashboard from "./components/Admin/AdminDashboard";
@@ -93,11 +95,27 @@ function App() {
               </ProtectedRoute>
             }
           />
-           <Route
+          <Route
             path="/recievebatch"
             element={
               <ProtectedRoute allowedRoles={["Staff"]}>
-                <RecieveBatch />
+                <ReceiveBatch />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/receivedbatches"
+            element={
+              <ProtectedRoute allowedRoles={["Staff"]}>
+                <ReceivedBatches />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/pendingbatches"
+            element={
+              <ProtectedRoute allowedRoles={["Staff"]}>
+                <PendingBatches />
               </ProtectedRoute>
             }
           />
@@ -143,7 +161,10 @@ function App() {
           />
           <Route path="/forbidden" element={<Forbidden />} />
           <Route path="/resetpassword" element={<ResetPassword />} />
-          <Route path="/request-deped-account" element={<RequestDepedAccount/>} />
+          <Route
+            path="/request-deped-account"
+            element={<RequestDepedAccount />}
+          />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Router>
