@@ -1,70 +1,24 @@
-.admin-dashboard {
-    font-family: Arial, sans-serif;
-    padding: 20px;
-    background-color: #f9f9f9;
+/* @media (min-width: 344px) and (max-width: 767px) {
+    .searchbar,
+    .filterbar {
+      width: 50% !important;
+    }
 }
 
-.welcome-message {
-    font-size: 24px;
-    color: #333;
-    margin-bottom: 20px;
-}
+  @media (min-width: 768px) and (max-width: 1024px) {
+    .searchbar,
+    .filterbar {
+      width: 1000px !important;
+    }
+  }
+  .searchbar,
+  .filterbar {
+    width: 50% !important;
+  } */
 
-.logout-button {
-    background-color: #ff4d4f;
-    color: white;
-    border: none;
-    padding: 10px 15px;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-}
-
-.logout-button:hover {
-    background-color: #e04444;
-}
-
-.tickets-heading {
-    font-size: 20px;
-    color: #444;
-    margin-bottom: 10px;
-}
-
-.tickets-list {
-    list-style-type: none;
-    padding: 0;
-}
-
-.ticket-item {
-    background-color: #ffffff;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    padding: 15px;
-    margin-bottom: 10px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.ticket-detail {
-    margin-bottom: 5px;
-    font-size: 14px;
-}
-
-.open-pdf-button {
-    background-color: #1890ff;
-    color: white;
-    border: none;
-    padding: 8px 12px;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-}
-
-.open-pdf-button:hover {
-    background-color: #167ac6;
-}
-
-.no-tickets-message,
-.loading-message {
-    color: #666;
-    font-size: 16px;
-}
+  @media (max-width: 768px) {
+    .search-filter-container .form-control,
+    .search-filter-container .form-select {
+      max-width: 100% !important;
+    }
+  }

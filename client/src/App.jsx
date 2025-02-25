@@ -22,16 +22,17 @@ import PendingBatches from "./components/School/Status/PendingBatches";
 // Admin
 import AdminDashboard from "./components/Admin/AdminDashboard";
 import CreateBatch from "./components/Admin/CreateBatch";
-import PasswordRequests from "./components/Admin/PasswordRequests";
 import BatchCreate from "./components/Admin/BatchCreate";
 import Batches from "./components/Admin/Batches";
+import NewAccountRequests from "./components/Admin/NewAccountRequests";
+import ResetAccountRequests from "./components/Admin/ResetAccountRequests";
+import SupportTickets from "./components/Admin/SupportTickets";
 
 // Public
 import Forbidden from "./components/Public/Forbidden";
 import NotFound from "./components/Public/NotFound";
 import Login from "./components/Public/Login";
 import RequestDepedAccount from "./components/Public/RequestDepedAccount";
-import ResetPassword from "./components/School/ResetPassword";
 
 function App() {
   return (
@@ -127,6 +128,30 @@ function App() {
               </ProtectedRoute>
             }
           />
+          {/* <Route
+            path="/newacc"
+            element={
+              <ProtectedRoute allowedRoles={["Admin"]}>
+                <NewAccountRequests />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/resetacc"
+            element={
+              <ProtectedRoute allowedRoles={["Admin"]}>
+                <ResetAccountRequests />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/supportticket"
+            element={
+              <ProtectedRoute allowedRoles={["Admin"]}>
+                <SupportTickets />
+              </ProtectedRoute>
+            }
+          /> */}
           <Route
             path="/batchcreate"
             element={
@@ -144,14 +169,6 @@ function App() {
             }
           />
           <Route
-            path="/passwordrequests"
-            element={
-              <ProtectedRoute allowedRoles={["Admin"]}>
-                <PasswordRequests />
-              </ProtectedRoute>
-            }
-          />
-          <Route
             path="/createbatch"
             element={
               <ProtectedRoute allowedRoles={["Admin"]}>
@@ -160,7 +177,6 @@ function App() {
             }
           />
           <Route path="/forbidden" element={<Forbidden />} />
-          <Route path="/resetpassword" element={<ResetPassword />} />
           <Route
             path="/request-deped-account"
             element={<RequestDepedAccount />}

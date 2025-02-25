@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 import { useAuth } from "../Context/AuthContext";
 import Badge from "react-bootstrap/Badge";
@@ -18,6 +18,7 @@ import { TbTruckDelivery } from "react-icons/tb";
 
 const Navbar = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [school, setSchool] = useState(null);
   const [username, setUsername] = useState(null);
   const [role, setRole] = useState(null);
@@ -78,6 +79,16 @@ const Navbar = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, [width]);
 
+  // Check if a path is active
+  const isActive = (path) => {
+    return location.pathname === path;
+  };
+  
+  // Check if any sub-path in a dropdown is active
+  const isDropdownActive = (paths) => {
+    return paths.some(path => location.pathname === path);
+  };
+
   const handleLogout = () => {
     Swal.fire({
       title: "Are you sure you want to logout?",
@@ -103,6 +114,20 @@ const Navbar = () => {
     setShowTicketDropdown(!showTicketDropdown);
     setShowBatchDropdown(false); // Close other dropdown
   };
+
+  // Set batch dropdown to open if any batch page is active
+  useEffect(() => {
+    if (isDropdownActive(['/pendingbatches', '/receivedbatches'])) {
+      setShowBatchDropdown(true);
+    }
+  }, [location.pathname]);
+
+  // Set ticket dropdown to open if any ticket page is active
+  useEffect(() => {
+    if (isDropdownActive(['/pendingticket', '/completedticket', '/rejectedticket', '/inprogressticket', '/onholdticket'])) {
+      setShowTicketDropdown(true);
+    }
+  }, [location.pathname]);
 
   const SidebarContent = () => (
     <div className="d-flex flex-column h-100" ref={sidebarRef}>
@@ -130,29 +155,29 @@ const Navbar = () => {
         <div className="nav flex-column">
           <a 
             href="/schooldashboard" 
-            className="nav-link text-dark d-flex align-items-center py-1 px-2 hover-effect"
+            className={`nav-link text-dark d-flex align-items-center py-1 px-2 hover-effect ${isActive('/schooldashboard') ? 'active-nav-item' : ''}`}
           >
             <MdOutlineSpaceDashboard className="me-3 fs-5" />
-            Dashboard
+            <span style={{fontSize: '15px'}}>Dashboard</span> 
           </a>
           <a 
             href="/ticket" 
-            className="nav-link text-dark d-flex align-items-center py-3 px-2 hover-effect"
+            className={`nav-link text-dark d-flex align-items-center py-3 px-2 hover-effect ${isActive('/ticket') ? 'active-nav-item' : ''}`}
           >
-            <LuTickets className="me-3 fs-5" />
-            Ticket Request
+            <LuTickets className="me-3 fs-5" />            
+            <span style={{fontSize: '15px'}}>Ticket Request</span>
           </a>
           
           {/* Batch Management Dropdown */}
           <div className="nav-item">
             <button
-              className="nav-link text-dark d-flex align-items-center justify-content-between w-100 py-1 px-2 border-0 bg-transparent"
+              className={`nav-link text-dark d-flex align-items-center justify-content-between w-100 py-1 px-2 border-0 bg-transparent hover-effect ${isDropdownActive(['/pendingbatches', '/receivedbatches']) ? 'active-nav-item' : ''}`}
               onClick={toggleBatchDropdown}
               style={{ cursor: 'pointer' }}
             >
               <div className="d-flex align-items-center">
                 <TbTruckDelivery className="me-3 fs-5" />
-                Batch Management
+                <span style={{fontSize: '15px'}}>Batch Management</span>
               </div>
               <MdKeyboardArrowDown 
                 className={`fs-5 transition-transform ${showBatchDropdown ? 'rotate-180' : ''}`}
@@ -169,10 +194,16 @@ const Navbar = () => {
                 overflow: 'hidden'
               }}
             >
-              <a href="/pendingbatches" className="nav-link text-dark py-2 px-4 dropdown-item hover-effect">
+              <a 
+                href="/pendingbatches" 
+                className={`nav-link text-dark py-2 px-4 dropdown-item hover-effect ${isActive('/pendingbatches') ? 'active-nav-item' : ''}`}
+              >
                 Pending 
               </a>
-              <a href="/receivedbatches" className="nav-link text-dark py-2 px-4 dropdown-item hover-effect">
+              <a 
+                href="/receivedbatches" 
+                className={`nav-link text-dark py-2 px-4 dropdown-item hover-effect ${isActive('/receivedbatches') ? 'active-nav-item' : ''}`}
+              >
                 Completed 
               </a>
             </div>
@@ -181,13 +212,13 @@ const Navbar = () => {
           {/* Ticket Management Dropdown */}
           <div className="nav-item">
             <button
-              className="nav-link text-dark d-flex align-items-center justify-content-between w-100 py-3 px-2 border-0 bg-transparent"
+              className={`nav-link text-dark d-flex align-items-center justify-content-between w-100 py-3 px-2 border-0 bg-transparent hover-effect ${isDropdownActive(['/pendingticket', '/completedticket', '/rejectedticket', '/inprogressticket', '/onholdticket']) ? 'active-nav-item' : ''}`}
               onClick={toggleTicketDropdown}
               style={{ cursor: 'pointer' }}
             >
               <div className="d-flex align-items-center">
                 <FaRegListAlt className="me-3 fs-5" />
-                Ticket Management
+                <span style={{fontSize: '15px'}}>Ticket Management</span>
               </div>
               <MdKeyboardArrowDown 
                 className={`fs-5 transition-transform ${showTicketDropdown ? 'rotate-180' : ''}`}
@@ -204,19 +235,34 @@ const Navbar = () => {
                 overflow: 'hidden'
               }}
             >
-              <a href="/pendingticket" className="nav-link text-dark py-2 px-4 dropdown-item hover-effect">
+              <a 
+                href="/pendingticket" 
+                className={`nav-link text-dark py-2 px-4 dropdown-item hover-effect ${isActive('/pendingticket') ? 'active-nav-item' : ''}`}
+              >
                 Pending 
               </a>
-              <a href="/completedticket" className="nav-link text-dark py-2 px-4 dropdown-item hover-effect">
+              <a 
+                href="/completedticket" 
+                className={`nav-link text-dark py-2 px-4 dropdown-item hover-effect ${isActive('/completedticket') ? 'active-nav-item' : ''}`}
+              >
                 Completed 
               </a>
-              <a href="/rejectedticket" className="nav-link text-dark py-2 px-4 dropdown-item hover-effect">
+              <a 
+                href="/rejectedticket" 
+                className={`nav-link text-dark py-2 px-4 dropdown-item hover-effect ${isActive('/rejectedticket') ? 'active-nav-item' : ''}`}
+              >
                 Rejected
               </a>
-              <a href="/inprogressticket" className="nav-link text-dark py-2 px-4 dropdown-item hover-effect">
+              <a 
+                href="/inprogressticket" 
+                className={`nav-link text-dark py-2 px-4 dropdown-item hover-effect ${isActive('/inprogressticket') ? 'active-nav-item' : ''}`}
+              >
                 In progress 
               </a>
-              <a href="/onholdticket" className="nav-link text-dark py-2 px-4 dropdown-item hover-effect">
+              <a 
+                href="/onholdticket" 
+                className={`nav-link text-dark py-2 px-4 dropdown-item hover-effect ${isActive('/onholdticket') ? 'active-nav-item' : ''}`}
+              >
                 On Hold
               </a>
             </div>
@@ -254,6 +300,17 @@ const Navbar = () => {
           .hover-effect:hover {
             background-color: rgba(41, 74, 112, 0.1);
             border-radius: 4px;
+          }
+
+          .active-nav-item {
+            background-color: rgba(41, 74, 112, 0.1);
+            border-radius: 4px;
+            font-weight: bold;
+          }
+
+          /* Add this to match AdminHeader hover effect */
+          .active-nav-item:hover {
+            background-color: rgba(41, 74, 112, 0.15);
           }
 
           .rotate-180 {
@@ -294,6 +351,7 @@ const Navbar = () => {
             zIndex: 1000,
             boxShadow: "4px 0 8px rgba(0, 0, 0, 0.1)",
             overflowY: "auto"
+
           }}
         >
           <SidebarContent />
