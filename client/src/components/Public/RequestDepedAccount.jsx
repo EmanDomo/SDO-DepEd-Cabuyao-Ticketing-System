@@ -1,38 +1,63 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Form, Button, Container, Card, Row, Col, Alert, FloatingLabel } from "react-bootstrap";
 import { FaRegTrashAlt } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { Modal } from 'react-bootstrap';
 
-const RequestDepedAccount = () => {
+  const RequestDepedAccount = () => {
   const navigate = useNavigate();
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [submittedRequestType, setSubmittedRequestType] = useState("");
+  const [schools, setSchools] = useState([]); // Store schools from the database
   const [formData, setFormData] = useState({
-    requestType: "", // New field: request type (new/reset)
+    requestType: "",
     selectedType: "",
-    name: "",
+    surname: "",
+    firstName: "",
+    middleName: "",
     designation: "",
     school: "",
     schoolID: "",
     personalGmail: "",
-    employeeNumber: "", // New field for reset
+    employeeNumber: "",
     proofOfIdentity: null,
     prcID: null,
     endorsementLetter: null,
     attachmentPreviews: []
   });
 
-  const [message] = useState("");
+  const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  useEffect(() => {
+    // Fetch schools from the database on component mount
+    const fetchSchools = async () => {
+      try {
+        const response = await fetch("http://localhost:8080/schoolList");
+        if (response.ok) {
+          const data = await response.json();
+          setSchools(data);
+        } else {
+          setError("Failed to fetch schools.");
+        }
+      } catch (err) {
+        console.error("Error fetching schools:", err);
+        setError("Error fetching schools. Please check your network and server.");
+      }
+    };
+
+    fetchSchools();
+  }, []);
+
   const handleRequestTypeChange = (e) => {
-    setFormData(prev => ({ 
-      ...prev, 
+    setFormData(prev => ({
+      ...prev,
       requestType: e.target.value,
       // Reset selectedType when changing request type
-      selectedType: ""
+      selectedType: "",
+      school: "",
+      schoolID: ""
     }));
     setError("");
   };
@@ -46,6 +71,25 @@ const RequestDepedAccount = () => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
     setError("");
+  };
+
+  const handleSchoolChange = (e) => {
+    const selectedSchoolName = e.target.value;
+    const selectedSchool = schools.find(school => school.school === selectedSchoolName);
+
+    if (selectedSchool) {
+      setFormData(prev => ({
+        ...prev,
+        school: selectedSchool.school,
+        schoolID: selectedSchool.schoolCode,
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        school: "",
+        schoolID: "",
+      }));
+    }
   };
 
   const handleFileChange = (e) => {
@@ -96,142 +140,136 @@ const RequestDepedAccount = () => {
     navigate("/"); // Redirect to login page
   };
 
+  // Add this email validation function
+  const isValidGmail = (email) => /^[a-zA-Z0-9._%+-]+@gmail\.com$/.test(email);
+
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
-    setError("");
+    // setError("");
+    setMessage("");
+
+    // Destructure ALL form data fields to ensure you are using the correct one
+    const { requestType, selectedType, surname, firstName, middleName, school, schoolID, employeeNumber, designation, personalGmail, proofOfIdentity, prcID, endorsementLetter } = formData;
 
     // Validation for both request types
-    if (!formData.requestType || !formData.selectedType || !formData.name || 
-        !formData.school || !formData.schoolID) {
+    if (!requestType || !selectedType || !surname || !firstName || !school || !schoolID) {
       setError("Please fill in all required fields");
       setIsSubmitting(false);
       return;
     }
 
-    // Additional validation for new account request
-    if (formData.requestType === "new" && (
-        !formData.designation || !formData.personalGmail || 
-        !formData.proofOfIdentity || !formData.prcID || !formData.endorsementLetter)) {
-      setError("Please fill in all required fields for new account request");
-      setIsSubmitting(false);
-      return;
-    }
+    let endpoint = "";
+    let options = {
+        method: "POST",
+    };
 
-    // Additional validation for reset account request
-    if (formData.requestType === "reset" && !formData.employeeNumber) {
-      setError("Please provide your employee number");
-      setIsSubmitting(false);
-      return;
+    let body = null;
+
+    // Additional validation for new account request
+    if (requestType === "new") {
+        // Determine the endpoint based on request type
+        endpoint = "http://localhost:8080/request-deped-account";
+        body = new FormData();
+
+        body.append("selectedType", selectedType);
+        body.append("surname", surname);
+        body.append("firstName", firstName);
+        body.append("middleName", middleName);
+        body.append("designation", designation);
+        body.append("school", school);
+        body.append("schoolID", schoolID);
+        body.append("personalGmail", personalGmail);
+        body.append("proofOfIdentity", proofOfIdentity);
+        body.append("prcID", prcID);
+        body.append("endorsementLetter", endorsementLetter);
+
+        options.body = body;
+
+        // Add Gmail validation
+        if (!isValidGmail(personalGmail)) {
+            setError("Please provide a valid Gmail address (must end with @gmail.com)");
+            setIsSubmitting(false);
+            return;
+        }
+        // Additional validation for reset account request
+    } else if (requestType === "reset") {
+        // Determine the endpoint based on request type
+        endpoint = "http://localhost:8080/reset-deped-account";
+        // For reset account requests
+        body = JSON.stringify({
+            selectedType: selectedType,
+            surname: surname,
+            firstName: firstName,
+            middleName: middleName,
+            school: school,
+            schoolID: schoolID,
+            employeeNumber: employeeNumber
+        });
+        options.headers = {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        };
+
+        options.body = body;
+
+        if (!employeeNumber) {
+            setError("Please provide your employee number");
+            setIsSubmitting(false);
+            return;
+        }
     }
 
     try {
-      const currentRequestType = formData.requestType;
-      // Determine the endpoint based on request type
-      const endpoint = formData.requestType === "new" 
-        ? "http://localhost:8080/request-deped-account"
-        : "http://localhost:8080/reset-deped-account";
-      
-      if (formData.requestType === "new") {
-        // For new account requests, use FormData to handle file uploads
-        const formDataToSend = new FormData();
-        formDataToSend.append("selected_type", formData.selectedType);
-        formDataToSend.append("name", formData.name);
-        formDataToSend.append("designation", formData.designation);
-        formDataToSend.append("school", formData.school);
-        formDataToSend.append("school_id", formData.schoolID);
-        formDataToSend.append("personal_gmail", formData.personalGmail);
-        formDataToSend.append("proofOfIdentity", formData.proofOfIdentity);
-        formDataToSend.append("prcID", formData.prcID);
-        formDataToSend.append("endorsementLetter", formData.endorsementLetter);
-        
-        const response = await fetch(endpoint, {
-          method: "POST",
-          body: formDataToSend
+
+      // console.log("Sending request to:", endpoint);
+      // console.log("Request options:", options);
+
+      // For reset account requests, send JSON data
+      const response = await fetch(endpoint, options);
+
+      if (response.ok) {
+        const responseData = await response.json();
+        setSubmittedRequestType(requestType);
+        setShowSuccessModal(true);
+        setMessage(responseData.message || "Request submitted successfully!");
+         // Reset form
+        setFormData({
+          requestType: "",
+          selectedType: "",
+          surname: "",
+          firstName: "",
+          middleName: "",
+          designation: "",
+          school: "",
+          schoolID: "",
+          personalGmail: "",
+          employeeNumber: "",
+          proofOfIdentity: null,
+          prcID: null,
+          endorsementLetter: null,
+          attachmentPreviews: []
         });
-        
-        if (response.ok) {
-          const data = await response.json();
-          setSubmittedRequestType(currentRequestType); // Save the request type
-          setShowSuccessModal(true);
-          // Reset form
-          setFormData({
-            requestType: "",
-            selectedType: "",
-            name: "",
-            designation: "",
-            school: "",
-            schoolID: "",
-            personalGmail: "",
-            employeeNumber: "",
-            proofOfIdentity: null,
-            prcID: null,
-            endorsementLetter: null,
-            attachmentPreviews: []
-          });
-        } else {
-          const errorData = await response.json();
-          setError(errorData.error || "Failed to submit request. Please try again.");
-        }
       } else {
-        // For reset account requests, send JSON data
-        const response = await fetch(endpoint, {
-          method: "POST",
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-          },
-          body: JSON.stringify({
-            selected_type: formData.selectedType,
-            name: formData.name,
-            school: formData.school,
-            school_id: formData.schoolID,
-            employee_number: formData.employeeNumber
-          })
-        });
-        
-        if (response.ok) {
-          const data = await response.json();
-          setSubmittedRequestType(currentRequestType); // Save the request type
-          setShowSuccessModal(true);
-          // Reset form
-          setFormData({
-            requestType: "",
-            selectedType: "",
-            name: "",
-            designation: "",
-            school: "",
-            schoolID: "",
-            personalGmail: "",
-            employeeNumber: "",
-            proofOfIdentity: null,
-            prcID: null,
-            endorsementLetter: null,
-            attachmentPreviews: []
-          });
-        } else {
-          const errorData = await response.json();
-          setError(errorData.error || "Failed to submit request. Please try again.");
-        }
+        // const errorData = await response.json(); 
+        const errorText = await response.text(); // Read the error message as text
+        console.error("Server responded with an error:", errorText);
+
+        setError(`Failed to submit request: ${response.status} - ${errorText || response.statusText}`);
       }
-    } catch (error) {
-      console.error("Error submitting request:", error);
-      if (error.name === 'AbortError') {
-        setError("Request timed out. Please check your connection and try again.");
-      } else if (!window.navigator.onLine) {
-        setError("No internet connection. Please check your network and try again.");
-      } else {
-        setError("Error submitting request. Please ensure the server is running and try again.");
+      } catch (error) {
+        console.error("Error submitting request:", error);
+        setError(`Error submitting request: ${error.message}`); 
+      } finally {
+        setIsSubmitting(false);
       }
-    } finally {
-      setIsSubmitting(false);
-    }
   };
 
   return (
     <Container className="mt-5">
       <form onSubmit={handleSubmit}>
-        <Card 
+        <Card
           className="m-auto"
           style={{
             width: "60%",
@@ -243,7 +281,7 @@ const RequestDepedAccount = () => {
         >
           {error && <Alert variant="danger">{error}</Alert>}
           {message && <Alert variant="success">{message}</Alert>}
-          
+
           <Card.Body>
             <div className="mb-4">
               <h3>DepEd Account Request</h3>
@@ -253,10 +291,10 @@ const RequestDepedAccount = () => {
             <Form.Group as={Row} className="mb-3">
               <Form.Label column sm="2">Request Type</Form.Label>
               <Col sm="10">
-                <Form.Select 
-                  value={formData.requestType} 
+                <Form.Select
+                  value={formData.requestType}
                   name="requestType"
-                  onChange={handleRequestTypeChange} 
+                  onChange={handleRequestTypeChange}
                   required
                 >
                   <option value="">-- Select Request Type --</option>
@@ -271,10 +309,10 @@ const RequestDepedAccount = () => {
               <Form.Group as={Row} className="mb-3">
                 <Form.Label column sm="2">Account Type</Form.Label>
                 <Col sm="10">
-                  <Form.Select 
-                    value={formData.selectedType} 
+                  <Form.Select
+                    value={formData.selectedType}
                     name="selectedType"
-                    onChange={handleTypeChange} 
+                    onChange={handleTypeChange}
                     required
                   >
                     <option value="">-- Select Account Type --</option>
@@ -291,32 +329,62 @@ const RequestDepedAccount = () => {
                 <Form.Group as={Row} className="mb-3">
                   <Form.Label column sm="2">Name</Form.Label>
                   <Col sm="10">
-                    <FloatingLabel label="Full Name">
-                      <Form.Control 
-                        type="text" 
-                        name="name" 
-                        value={formData.name}
-                        onChange={handleChange} 
-                        placeholder="Full Name"
-                        required 
-                      />
-                    </FloatingLabel>
+                    <Row>
+                      <Col md={4}>
+                        <FloatingLabel label="Surname">
+                          <Form.Control
+                            type="text"
+                            name="surname"
+                            value={formData.surname || ''}
+                            onChange={handleChange}
+                            placeholder="Surname"
+                            required
+                          />
+                        </FloatingLabel>
+                      </Col>
+                      <Col md={4}>
+                        <FloatingLabel label="First Name">
+                          <Form.Control
+                            type="text"
+                            name="firstName"
+                            value={formData.firstName || ''}
+                            onChange={handleChange}
+                            placeholder="First Name"
+                            required
+                          />
+                        </FloatingLabel>
+                      </Col>
+                      <Col md={4}>
+                        <FloatingLabel label="Middle Name">
+                          <Form.Control
+                            type="text"
+                            name="middleName"
+                            value={formData.middleName || 'N/A'}
+                            onChange={handleChange}
+                            placeholder="Middle Name"
+                          />
+                        </FloatingLabel>
+                      </Col>
+                    </Row>
                   </Col>
                 </Form.Group>
 
                 <Form.Group as={Row} className="mb-3">
                   <Form.Label column sm="2">School</Form.Label>
                   <Col sm="10">
-                    <FloatingLabel label="School">
-                      <Form.Control 
-                        type="text" 
-                        name="school" 
-                        value={formData.school}
-                        onChange={handleChange} 
-                        placeholder="School"
-                        required 
-                      />
-                    </FloatingLabel>
+                    <Form.Select
+                      name="school"
+                      value={formData.school}
+                      onChange={handleSchoolChange}
+                      required
+                    >
+                      <option value="">-- Select School --</option>
+                      {schools.map((school) => (
+                        <option key={school.schoolCode} value={school.school}>
+                          {school.school}
+                        </option>
+                      ))}
+                    </Form.Select>
                   </Col>
                 </Form.Group>
 
@@ -324,13 +392,13 @@ const RequestDepedAccount = () => {
                   <Form.Label column sm="2">School ID</Form.Label>
                   <Col sm="10">
                     <FloatingLabel label="School ID">
-                      <Form.Control 
-                        type="text" 
-                        name="schoolID" 
+                      <Form.Control
+                        type="text"
+                        name="schoolID"
                         value={formData.schoolID}
-                        onChange={handleChange} 
                         placeholder="School ID"
-                        required 
+                        readOnly
+                        required
                       />
                     </FloatingLabel>
                   </Col>
@@ -343,13 +411,13 @@ const RequestDepedAccount = () => {
                       <Form.Label column sm="2">Designation</Form.Label>
                       <Col sm="10">
                         <FloatingLabel label="Designation">
-                          <Form.Control 
-                            type="text" 
-                            name="designation" 
+                          <Form.Control
+                            type="text"
+                            name="designation"
                             value={formData.designation}
-                            onChange={handleChange} 
+                            onChange={handleChange}
                             placeholder="Designation"
-                            required 
+                            required
                           />
                         </FloatingLabel>
                       </Col>
@@ -359,13 +427,13 @@ const RequestDepedAccount = () => {
                       <Form.Label column sm="2">Personal Gmail</Form.Label>
                       <Col sm="10">
                         <FloatingLabel label="Personal Gmail Account">
-                          <Form.Control 
-                            type="email" 
-                            name="personalGmail" 
+                          <Form.Control
+                            type="email"
+                            name="personalGmail"
                             value={formData.personalGmail}
-                            onChange={handleChange} 
+                            onChange={handleChange}
                             placeholder="name@gmail.com"
-                            required 
+                            required
                           />
                         </FloatingLabel>
                       </Col>
@@ -487,13 +555,13 @@ const RequestDepedAccount = () => {
                     <Form.Label column sm="2">Employee Number</Form.Label>
                     <Col sm="10">
                       <FloatingLabel label="Employee Number">
-                        <Form.Control 
-                          type="text" 
-                          name="employeeNumber" 
+                        <Form.Control
+                          type="text"
+                          name="employeeNumber"
                           value={formData.employeeNumber}
-                          onChange={handleChange} 
+                          onChange={handleChange}
                           placeholder="Employee Number"
-                          required 
+                          required
                         />
                       </FloatingLabel>
                     </Col>
@@ -503,13 +571,13 @@ const RequestDepedAccount = () => {
             )}
           </Card.Body>
 
-          <Card.Footer 
+          <Card.Footer
             className="d-flex justify-content-center mb-3"
             style={{ backgroundColor: "transparent", border: "none" }}
           >
-            <Button 
-              variant="dark" 
-              type="submit" 
+            <Button
+              variant="dark"
+              type="submit"
               style={{ width: "25%" }}
               disabled={isSubmitting || !formData.selectedType}
             >

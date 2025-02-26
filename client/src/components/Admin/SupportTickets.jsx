@@ -325,7 +325,7 @@ const SupportTickets = ({
   ];
 
   return (
-    <>
+<div>
       {loading ? (
         <div className="text-center py-4">
           <div className="spinner-border text-primary" role="status">
@@ -333,90 +333,98 @@ const SupportTickets = ({
           </div>
           <p className="mt-2">Loading tickets...</p>
         </div>
-      ) : filteredTickets.length > 0 ? (
-        <div className="table-responsive">
-          <Table hover className="mb-0 align-middle">
-            <thead>
-              <tr>
-                <th className="text-center" style={{width: '20%'}}>Ticket #</th>
-                <th className="text-center" style={{width: '18%'}}>Requestor</th>
-                <th className="text-center" style={{width: '10%%'}}>Category</th>
-                <th className="text-center" style={{width: '20%%'}}>Request</th>
-                <th className="text-center" style={{width: '10%'}}>Status</th>
-                <th className="text-center" style={{width: '10%'}}>Date</th>
-                <th className="text-center" style={{width: '12%'}}>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredTickets.map((ticket) => (
-                <tr key={ticket.ticketNumber}>
-                  <td>{ticket.ticketNumber}</td>
-                  <td className="text-center">{ticket.requestor}</td>
-                  <td className="text-center">{ticket.category}</td>
-                  <td>
-                    <div
-                      style={{
-                        maxWidth: "250px",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      {ticket.request}
-                    </div>
-                  </td>
-                  <td className="text-center">
-                    <Badge
-                      bg={getStatusBadgeVariant(ticket.status)}
-                      style={{ fontSize: "0.85rem", padding: "0.4em 0.6em" }}
-                    >
-                      {ticket.status}
-                    </Badge>
-                  </td>
-                  <td>{new Date(ticket.date).toLocaleDateString()}</td>
-                  <td className="d-flex justify-content-between">
-                    <div>
-                    <Button
-                        size="sm"
-                        variant="outline-info"
-                        className="d-flex align-items-center me-2"
-                        onClick={() => handleShowTicketDetails(ticket)}
-                      >
-                        View
-                      </Button>
-                    </div>
-                    <div>
-                    {ticket.attachments &&
-                        JSON.parse(ticket.attachments).length > 0 && (
+      ) : (
+        <div>
+          <div className="d-flex justify-content-between align-items-center mb-3">
+            <h5 className="mb-0" style={{ color: '#294a70' }}>Tickets</h5>
+            <span className="badge text-light p-2" style={{ backgroundColor: '#294a70' }}>
+              {filteredTickets.length} Tickets
+            </span>
+          </div>
+
+          {filteredTickets.length > 0 ? (
+            <div className="table-responsive">
+              <Table hover className="mb-0 align-middle">
+                <thead>
+                  <tr>
+                    <th className="text-center" style={{ width: '10%' }}>Ticket #</th>
+                    <th className="text-center" style={{ width: '18%' }}>Requestor</th>
+                    <th className="text-center" style={{ width: '10%' }}>Category</th>
+                    <th className="text-center" style={{ width: '30%' }}>Request</th>
+                    <th className="text-center" style={{ width: '10%' }}>Status</th>
+                    <th className="text-center" style={{ width: '10%' }}>Date</th>
+                    <th className="text-center" style={{ width: '12%' }}>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredTickets.map((ticket) => (
+                    <tr key={ticket.ticketNumber}>
+                      <td>{ticket.ticketNumber}</td>
+                      <td className="text-center">{ticket.requestor}</td>
+                      <td className="text-center">{ticket.category}</td>
+                      <td>
+                        <div
+                          style={{
+                            maxWidth: "250px",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          {ticket.request}
+                        </div>
+                      </td>
+                      <td className="text-center">
+                        <Badge
+                          bg={getStatusBadgeVariant(ticket.status)}
+                          style={{ fontSize: "0.85rem", padding: "0.4em 0.6em" }}
+                        >
+                          {ticket.status}
+                        </Badge>
+                      </td>
+                      <td>{new Date(ticket.date).toLocaleDateString()}</td>
+                      <td className="d-flex justify-content-between">
+                        <div>
                           <Button
                             size="sm"
-                            variant="outline-secondary"
-                            className="d-flex align-items-center"
-                            style={{width: '65px'}}
-                            onClick={() =>
-                              handleOpenAttachments(ticket.attachments)
-                            }
+                            variant="outline-info"
+                            className="d-flex align-items-center me-2"
+                            onClick={() => handleShowTicketDetails(ticket)}
                           >
-                            Files ({JSON.parse(ticket.attachments).length})
+                            View
                           </Button>
-                        )}
-                    </div>
-
-
-                   
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </Table>
-        </div>
-      ) : (
-        <div className="text-center py-5">
-          <i className="fas fa-search fa-3x text-muted mb-3"></i>
-          <h5>No tickets found</h5>
-          <p className="text-muted">
-            Try adjusting your filters or search term
-          </p>
+                        </div>
+                        <div>
+                          {ticket.attachments &&
+                            JSON.parse(ticket.attachments).length > 0 && (
+                              <Button
+                                size="sm"
+                                variant="outline-secondary"
+                                className="d-flex align-items-center"
+                                style={{ width: '65px' }}
+                                onClick={() =>
+                                  handleOpenAttachments(ticket.attachments)
+                                }
+                              >
+                                Files ({JSON.parse(ticket.attachments).length})
+                              </Button>
+                            )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </Table>
+            </div>
+          ) : (
+            <div className="text-center py-5">
+              <i className="fas fa-search fa-3x text-muted mb-3"></i>
+              <h5>No tickets found</h5>
+              <p className="text-muted">
+                Try adjusting your filters or search term
+              </p>
+            </div>
+          )}
         </div>
       )}
 
@@ -463,7 +471,7 @@ const SupportTickets = ({
           box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
         }
       `}</style>
-    </>
+    </div>
   );
 };
 

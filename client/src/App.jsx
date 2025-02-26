@@ -21,12 +21,8 @@ import PendingBatches from "./components/School/Status/PendingBatches";
 
 // Admin
 import AdminDashboard from "./components/Admin/AdminDashboard";
-import CreateBatch from "./components/Admin/CreateBatch";
-import BatchCreate from "./components/Admin/BatchCreate";
 import Batches from "./components/Admin/Batches";
-import NewAccountRequests from "./components/Admin/NewAccountRequests";
-import ResetAccountRequests from "./components/Admin/ResetAccountRequests";
-import SupportTickets from "./components/Admin/SupportTickets";
+import BatchCreate from "./components/Admin/BatchCreate";
 
 // Public
 import Forbidden from "./components/Public/Forbidden";
@@ -128,38 +124,6 @@ function App() {
               </ProtectedRoute>
             }
           />
-          {/* <Route
-            path="/newacc"
-            element={
-              <ProtectedRoute allowedRoles={["Admin"]}>
-                <NewAccountRequests />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/resetacc"
-            element={
-              <ProtectedRoute allowedRoles={["Admin"]}>
-                <ResetAccountRequests />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/supportticket"
-            element={
-              <ProtectedRoute allowedRoles={["Admin"]}>
-                <SupportTickets />
-              </ProtectedRoute>
-            }
-          /> */}
-          <Route
-            path="/batchcreate"
-            element={
-              <ProtectedRoute allowedRoles={["Admin"]}>
-                <BatchCreate />
-              </ProtectedRoute>
-            }
-          />
           <Route
             path="/batches"
             element={
@@ -169,10 +133,10 @@ function App() {
             }
           />
           <Route
-            path="/createbatch"
+            path="/batchcreate"
             element={
               <ProtectedRoute allowedRoles={["Admin"]}>
-                <CreateBatch />
+                <BatchCreate />
               </ProtectedRoute>
             }
           />

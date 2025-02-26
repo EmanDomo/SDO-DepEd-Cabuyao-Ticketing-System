@@ -8,7 +8,9 @@ import { Alert, Form, Tab } from "react-bootstrap";
 import SupportTickets from "./SupportTickets";
 import NewAccountRequests from "./NewAccountRequests";
 import ResetAccountRequests from "./ResetAccountRequests";
+import BatchCreate from "./BatchCreate";
 import AdminHeader from "./AdminHeader";
+import ViewBatches from "./ViewBatches";
 import { useWindowSize } from "react-use";
 
 const AdminDashboard = () => {
@@ -27,9 +29,9 @@ const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState("tickets");
   const { width } = useWindowSize();
 
-  // Authentication check
   useEffect(() => {
     const token = localStorage.getItem("token");
+    fetchTickets();
     if (!token) {
       navigate("/forbidden");
       return;
@@ -47,7 +49,6 @@ const AdminDashboard = () => {
     }
   }, [navigate]);
 
-  // Fetch tickets
   const fetchTickets = async () => {
     try {
       setLoading(true);
@@ -68,7 +69,6 @@ const AdminDashboard = () => {
     }
   };
 
-  // Fetch new account requests
   const fetchNewAccountRequests = async () => {
     try {
       const response = await axios.get(
@@ -138,6 +138,15 @@ const AdminDashboard = () => {
     "In Progress",
     "Rejected",
   ];
+  const viewBatchOptions = ["Delivered", "Pending"];
+
+  // Handle tab change from header
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+  };
+
+  // Determine if search/filter should be visible
+  const shouldShowSearchFilter = activeTab !== "batchCreate";
 
   return (
     <>
@@ -167,7 +176,7 @@ const AdminDashboard = () => {
         username={username}
         role={role}
         activeTab={activeTab}
-        setActiveTab={setActiveTab}
+        setActiveTab={handleTabChange}
       />
 
       {/* Main Content */}
@@ -175,57 +184,69 @@ const AdminDashboard = () => {
         className="main-content"
         style={{
           marginLeft: width >= 768 ? "250px" : "0",
-          marginTop: "70px",
+          marginTop: "50px",
           padding: "20px",
           transition: "margin-left 0.3s ease-in-out",
         }}
       >
         {error && <Alert variant="danger">{error}</Alert>}
 
-        <div className="mb-4">
+        {/* <div className="mb-4">
           <h3 style={{ color: "#294a70" }}>
             {activeTab === "tickets"
-              ? "Support Tickets"
+              ? "Tickets"
               : activeTab === "newAccounts"
               ? "New Account Requests"
-              : "Reset Account Requests"}
+              : activeTab === "resetAccounts"
+              ? "Reset Account Requests"
+              : activeTab === "viewBatches"
+              ? "Batches"
+              : "Create Batch"}
           </h3>
-        </div>
+        </div> */}
 
-        {/* Search and Filter */}
-        <div className="row search-filter-container flex-wrap">
-          <div className="col-6 d-flex justify-content-start">
-            <Form.Control
-              type="text"
-              placeholder="Search"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-100"
-              style={{ maxWidth: "50%" }}
-            />
+        {/* Search and Filter - Only show if not on BatchCreate tab */}
+        {shouldShowSearchFilter && (
+          <div className="row search-filter-container flex-wrap">
+            <div className="col-6 d-flex justify-content-start">
+              <Form.Control
+                type="text"
+                placeholder="Search"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-100"
+                style={{ maxWidth: "50%" }}
+              />
+            </div>
+            <div className="col-6 d-flex justify-content-end">
+              <Form.Select
+                value={filterStatus}
+                onChange={(e) => setFilterStatus(e.target.value)}
+                className="w-100"
+                style={{ maxWidth: "25%" }}
+              >
+                <option value="all">All Status</option>
+                {activeTab === "tickets"
+                  ? statusOptions.map((status) => (
+                      <option key={status} value={status}>
+                        {status}
+                      </option>
+                    ))
+                  :activeTab === "viewBatches"
+                  ? viewBatchOptions.map((status) => (
+                      <option key={status} value={status}>
+                        {status}
+                      </option>
+                    ))
+                  : accountStatusOptions.map((status) => (
+                      <option key={status} value={status}>
+                        {status}
+                      </option>
+                    ))}
+              </Form.Select>
+            </div>
           </div>
-          <div className="col-6 d-flex justify-content-end">
-            <Form.Select
-              value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
-              className="w-100"
-              style={{ maxWidth: "25%" }}
-            >
-              <option value="all">All Status</option>
-              {activeTab === "tickets"
-                ? statusOptions.map((status) => (
-                    <option key={status} value={status}>
-                      {status}
-                    </option>
-                  ))
-                : accountStatusOptions.map((status) => (
-                    <option key={status} value={status}>
-                      {status}
-                    </option>
-                  ))}
-            </Form.Select>
-          </div>
-        </div>
+        )}
 
         {/* Content Based on Active Tab */}
         <Tab.Container activeKey={activeTab}>
@@ -257,6 +278,17 @@ const AdminDashboard = () => {
                 filterStatus={filterStatus}
                 searchTerm={searchTerm}
                 fetchResetAccountRequests={fetchResetAccountRequests}
+              />
+            </Tab.Pane>
+
+            <Tab.Pane eventKey="batchCreate">
+              <BatchCreate />
+            </Tab.Pane>
+
+            <Tab.Pane eventKey="viewBatches">
+              <ViewBatches
+                filterStatus={filterStatus}
+                searchTerm={searchTerm}
               />
             </Tab.Pane>
           </Tab.Content>

@@ -57,6 +57,66 @@ router.get("/tickets", (req, res) => {
     });
 });
 
+router.get("/api/tickets/:ticketNumber/devices", async (req, res) => {
+  const { ticketNumber } = req.params;
+  const query = `
+    SELECT 
+        t.ticketNumber,
+        t.requestor,
+        b.batch_id,
+        b.batch_number,
+        bd.device_type,
+        bd.device_number,
+        td.issue_description
+    FROM tbl_tickets t
+    JOIN tbl_ticket_devices td ON t.ticketId = td.ticket_id
+    JOIN tbl_batch_devices bd ON td.batch_devices_id = bd.batch_devices_id
+    JOIN tbl_batches b ON bd.batch_id = b.batch_id
+    WHERE t.ticketNumber = ?
+    ORDER BY bd.batch_devices_id;
+  `;
+
+  try {
+    const [rows] = await db.execute(query, [ticketNumber]);
+    res.json(rows);
+  } catch (error) {
+    console.error("Error fetching ticket devices:", error);
+    res.status(500).json({ error: "Failed to fetch devices" });
+  }
+});
+
+
+
+router.get("/ticketdevices", (req, res) => {
+  const query = `
+      SELECT 
+          t.ticketNumber,
+          t.requestor,
+          b.batch_id,
+          b.batch_number,
+          bd.device_type,
+          bd.device_number,
+          td.issue_description
+      FROM tbl_tickets t
+      JOIN tbl_ticket_devices td ON t.ticketId = td.ticket_id
+      JOIN tbl_batch_devices bd ON td.batch_devices_id = bd.batch_devices_id
+      JOIN tbl_batches b ON bd.batch_id = b.batch_id
+      ORDER BY bd.batch_devices_id;
+  `;
+
+  conn.query(query, (err, results) => {
+      if (err) {
+          console.error("Error fetching ticket devices:", err);
+          return res.status(500).json({ error: "Database query failed" });
+      }
+      console.log("Query Results:", results); // Debugging step
+      res.json(results);
+  });
+});
+
+
+
+
 router.get('/getBatches/:schoolCode', (req, res) => {
     const { schoolCode } = req.params;
 
@@ -90,49 +150,174 @@ router.get('/getBatches/:schoolCode', (req, res) => {
 });
 
 router.post("/createTickets", (req, res) => {
-    upload(req, res, function (err) {
-      if (err instanceof multer.MulterError) {
-        return res.status(400).json({ error: "File upload error: " + err.message });
-      } else if (err) {
-        return res.status(400).json({ error: err.message });
+  upload(req, res, function (err) {
+    if (err instanceof multer.MulterError) {
+      return res.status(400).json({ error: "File upload error: " + err.message });
+    } else if (err) {
+      return res.status(400).json({ error: err.message });
+    }
+
+    const { requestor, category, request, comments, status, batch } = req.body;
+    let selectedDevices = [];
+
+    // Parse selectedDevices if present, ensuring correct format
+    console.log("Raw selectedDevices:", req.body.selectedDevices);
+
+    if (req.body.selectedDevices) {
+      try {
+        let rawDevices = req.body.selectedDevices;
+    
+        // Handle cases where selectedDevices is an array but contains a single stringified JSON
+        if (Array.isArray(rawDevices) && rawDevices.length === 2 && typeof rawDevices[1] === "string") {
+          rawDevices = rawDevices[1];
+        }
+    
+        selectedDevices = JSON.parse(rawDevices);
+        console.log("Parsed Selected Devices:", selectedDevices);
+      } catch (e) {
+        console.error("Error parsing selectedDevices:", e.message);
+        return res.status(400).json({ error: "Invalid JSON format for selectedDevices: " + e.message });
       }
-  
-      const { requestor, category, request, comments, status, batch } = req.body;
-      const attachments = req.files ? req.files.map(file => file.filename) : [];
-      const ticketNumber = `TKT-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-  
-      // Validate required fields
-      if (!requestor || !category || !request) {
-        return res.status(400).json({ error: "Missing required fields" });
+    }
+    
+
+    const attachments = req.files ? req.files.map(file => file.filename) : [];
+    const ticketNumber = `${Date.now().toString().slice(-6)}${Math.floor(10000 + Math.random() * 90000)}`;
+
+
+    // Validate required fields
+    if (!requestor || !category || !request) {
+      return res.status(400).json({ error: "Missing required fields" });
+    }
+
+    if (category === "Hardware" && !batch) {
+      return res.status(400).json({ error: "Batch is required for hardware issues" });
+    }
+
+    // Use transaction to ensure both ticket and devices are saved or none
+    conn.beginTransaction(err => {
+      if (err) {
+        console.error("Transaction error:", err);
+        return res.status(500).json({ error: "Database transaction failed" });
       }
-  
-      if (category === "Hardware" && !batch) {
-        return res.status(400).json({ error: "Batch is required for hardware issues" });
-      }
-  
-      const query = `
+
+      const ticketQuery = `
         INSERT INTO tbl_tickets 
         (ticketNumber, requestor, category, request, comments, attachments, status, date, batch_id) 
         VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), ?)
       `;
-  
+
       conn.query(
-        query,
-        [ticketNumber, requestor, category, request, comments, JSON.stringify(attachments), status || 'In Progress', batch || null],
+        ticketQuery,
+        [ticketNumber, requestor, category, request, comments, JSON.stringify(attachments), status || 'Pending', batch || null],
         (err, result) => {
           if (err) {
-            console.error("Database error:", err);
-            return res.status(500).json({ error: "Failed to create ticket" });
+            return conn.rollback(() => {
+              console.error("Database error:", err);
+              res.status(500).json({ error: "Failed to create ticket" });
+            });
           }
-          res.json({
-            message: "Ticket submitted successfully",
-            ticketNumber,
-            ticketId: result.insertId
-          });
+
+          const ticketId = result.insertId;
+
+          // If hardware category and devices selected, insert device records
+          if (category === "Hardware" && selectedDevices.length > 0) {
+            // First, we need to get the batch_devices_id for each device number
+            const deviceNumbers = selectedDevices.map(device => device.deviceId);
+
+            // Query to get the batch_devices_id for each device number
+            const getDeviceIdsQuery = `
+              SELECT batch_devices_id, device_number 
+              FROM tbl_batch_devices 
+              WHERE batch_id = ? AND device_number IN (?)
+            `;
+
+            conn.query(getDeviceIdsQuery, [batch, deviceNumbers], (err, deviceRows) => {
+              if (err) {
+                return conn.rollback(() => {
+                  console.error("Error getting device IDs:", err);
+                  res.status(500).json({ error: "Failed to retrieve device IDs" });
+                });
+              }
+
+              // Create a mapping of device_number to batch_devices_id
+              const deviceIdMap = {};
+              deviceRows.forEach(row => {
+                deviceIdMap[row.device_number] = row.batch_devices_id;
+              });
+
+              // Prepare device insertion queries with the correct IDs and descriptions
+              const deviceRecords = selectedDevices
+                .filter(device => deviceIdMap[device.deviceId]) // Only include devices we found IDs for
+                .map(device => [
+                  ticketId,
+                  deviceIdMap[device.deviceId],
+                  device.description || `Issue with device ${device.deviceId}`
+                ]);
+
+              if (deviceRecords.length === 0) {
+                return conn.rollback(() => {
+                  console.error("No valid devices found");
+                  res.status(400).json({ error: "No valid devices found in the batch" });
+                });
+              }
+
+              const deviceQuery = `
+                INSERT INTO tbl_ticket_devices 
+                (ticket_id, batch_devices_id, issue_description) 
+                VALUES ?
+              `;
+
+              conn.query(deviceQuery, [deviceRecords], (err) => {
+                if (err) {
+                  return conn.rollback(() => {
+                    console.error("Device association error:", err);
+                    res.status(500).json({ error: "Failed to associate devices with ticket" });
+                  });
+                }
+
+                // Commit the transaction
+                conn.commit(err => {
+                  if (err) {
+                    return conn.rollback(() => {
+                      console.error("Commit error:", err);
+                      res.status(500).json({ error: "Failed to commit transaction" });
+                    });
+                  }
+
+                  // Success response
+                  res.json({
+                    message: "Ticket submitted successfully",
+                    ticketNumber,
+                    ticketId
+                  });
+                });
+              });
+            });
+          } else {
+            // No devices to associate, just commit the ticket
+            conn.commit(err => {
+              if (err) {
+                return conn.rollback(() => {
+                  console.error("Commit error:", err);
+                  res.status(500).json({ error: "Failed to commit transaction" });
+                });
+              }
+
+              // Success response
+              res.json({
+                message: "Ticket submitted successfully",
+                ticketNumber,
+                ticketId
+              });
+            });
+          }
         }
       );
     });
   });
+});
+
 
 
 router.put("/tickets/:ticketId/status", (req, res) => {

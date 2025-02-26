@@ -8,6 +8,7 @@ import { LuTickets } from "react-icons/lu";
 import { FaRegUser, FaBoxOpen } from "react-icons/fa";
 import { BiUserPlus } from "react-icons/bi";
 import { MdOutlineRestartAlt } from "react-icons/md";
+import { CiViewList } from "react-icons/ci";
 import Swal from "sweetalert2";
 
 const AdminHeader = ({ 
@@ -73,6 +74,10 @@ const AdminHeader = ({
     navigate("/createbatch");
   };
 
+  const handleCreateBatch2 = () => {
+    navigate("/batchcreate");
+  };
+
   const SidebarContent = () => (
     <div className="d-flex flex-column h-100" ref={sidebarRef}>
       {/* Header */}
@@ -104,7 +109,7 @@ const AdminHeader = ({
             onClick={() => setActiveTab('tickets')}
           >
             <LuTickets className="me-3 fs-5 " />
-            Support Tickets
+            Tickets
           </button>
           
           {/* New Account Requests */}
@@ -124,14 +129,21 @@ const AdminHeader = ({
             <MdOutlineRestartAlt className="me-3 fs-5" />
             Reset Account Requests
           </button>
-          
-          {/* Create Batch Button */}
+
           <button
-            className="nav-link text-dark d-flex align-items-center py-3 px-1 hover-effect border-0 bg-transparent w-100 text-start"
-            onClick={handleCreateBatch}
+            className={`nav-link text-dark d-flex align-items-center py-3 px-1 hover-effect border-0 bg-transparent w-100 text-start ${activeTab === 'batchCreate' ? 'active-nav-item' : ''}`}
+            onClick={() => setActiveTab('batchCreate')}
           >
             <FaBoxOpen className="me-3 fs-5" />
             Create Batch
+          </button>
+
+          <button
+            className={`nav-link text-dark d-flex align-items-center py-3 px-1 hover-effect border-0 bg-transparent w-100 text-start ${activeTab === 'viewBatches' ? 'active-nav-item' : ''}`}
+            onClick={() => setActiveTab('viewBatches')}
+          >
+            <CiViewList className="me-3 fs-5" />
+            View Batch
           </button>
         </div>
       </div>
@@ -229,8 +241,9 @@ const AdminHeader = ({
               </button>
             )}
             <a className="navbar-brand" href="#">
+            <b className="d-none d-lg-inline">{firstName} {lastName}</b>
               <span className="fs-6 ms-lg-4 ms-0 d-lg-inline">
-                <i>Username: {username}</i>
+                <i className="d-none d-lg-inline">Username: {username}</i>
                 <Badge bg="light" className="ms-3" style={{ color: "#294a70" }}>
                   {role}
                 </Badge>

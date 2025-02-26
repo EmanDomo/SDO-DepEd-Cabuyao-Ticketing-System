@@ -167,8 +167,16 @@ const NewAccountRequests = ({
                             <div class="col-md-9">${request.selected_type}</div>
                         </div>
                         <div class="row mb-2">
-                            <div class="col-md-3 fw-bold">Name:</div>
-                            <div class="col-md-9">${request.name}</div>
+                            <div class="col-md-3 fw-bold">Last Name:</div>
+                            <div class="col-md-9">${request.surname}</div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-md-3 fw-bold">First Name:</div>
+                            <div class="col-md-9">${request.first_name}</div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-md-3 fw-bold">Middle Name:</div>
+                            <div class="col-md-9">${formatMiddleName(request.middle_name)}</div>
                         </div>
                         <div class="row mb-2">
                             <div class="col-md-3 fw-bold">Designation:</div>
@@ -317,121 +325,136 @@ const NewAccountRequests = ({
     }
   };
 
-  const filteredNewAccountRequests = newAccountRequests
-    .filter((request) => {
-      if (filterStatus === "all") return true;
-      return request.status.toLowerCase() === filterStatus.toLowerCase();
-    })
-    .filter(
-      (request) =>
-        searchTerm === "" ||
-        request.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        request.school.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+  // Function to display N/A for empty middle names
+  const formatMiddleName = (middleName) => {
+    return middleName && middleName.trim() !== "" ? middleName : "N/A";
+  };
 
-  const accountStatusOptions = [
-    "Completed",
-    "Pending",
-    "In Progress",
-    "Rejected",
-  ];
+  const filteredNewAccountRequests = newAccountRequests
+  .filter((request) => {
+    if (filterStatus === "all") return true;
+    return request.status.toLowerCase() === filterStatus.toLowerCase();
+  })
+  .filter(
+    (request) =>
+      searchTerm === "" ||
+      request.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      request.school.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+const accountStatusOptions = [
+  "Completed",
+  "Pending",
+  "In Progress",
+  "Rejected",
+];
 
   return (
     <>
-      {loading ? (
+       {loading ? (
         <div className="text-center py-4">
           <div className="spinner-border text-primary" role="status">
             <span className="visually-hidden">Loading...</span>
           </div>
           <p className="mt-2">Loading requests...</p>
         </div>
-      ) : filteredNewAccountRequests.length > 0 ? (
-        <div className="table-responsive">
-          <Table hover className="mb-0 align-middle">
-            <thead>
-              <tr>
-                <th className="text-center">Request ID</th>
-                <th className="text-center">Account Type</th>
-                <th className="text-center">Name</th>
-                <th className="text-center">School</th>
-                <th className="text-center">Designation</th>
-                <th className="text-center">School ID</th>
-                <th className="text-center">Personal Gmail</th>
-                <th className="text-center">Status</th>
-                <th className="text-center">Date</th>
-                <th className="text-center" style={{ width: "12%" }}>
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredNewAccountRequests.map((request) => (
-                <tr key={request.id}>
-                  <td>{request.id}</td>
-                  <td>{request.selected_type}</td>
-                  <td>{request.name}</td>
-                  <td>{request.school}</td>
-                  <td>{request.designation}</td>
-                  <td>{request.school_id}</td>
-                  <td>{request.personal_gmail}</td>
-                  <td>
-                    <Badge
-                      bg={getStatusBadgeVariant(request.status)}
-                      style={{ fontSize: "0.85rem", padding: "0.4em 0.6em" }}
-                    >
-                      {request.status}
-                    </Badge>
-                  </td>
-                  <td>{new Date(request.created_at).toLocaleDateString()}</td>
-                  <td className="d-flex justify-content-between">
-                    <div>
-                      <Button
-                        size="sm"
-                        variant="outline-info"
-                        className="d-flex align-items-center me-2"
-                        onClick={() => handleShowNewRequestDetails(request)}
-                      >
-                        View
-                      </Button>
-                    </div>
-                    <div>
-                      {(() => {
-                        // Count valid files
-                        const files = {
-                          endorsement_letter: request.endorsement_letter || "",
-                          prc_id: request.prc_id || "",
-                          proof_of_identity: request.proof_of_identity || "",
-                        };
-                        const fileCount = Object.values(files).filter(
-                          (file) => file
-                        ).length;
+      ) : (
+        <div>
+          {/* Add a header with a badge for the count of filtered requests */}
+          <div className="d-flex justify-content-between align-items-center mb-3">
+            <h5 className="mb-0" style={{ color: '#294a70' }}>New Account Requests</h5>
+            <span className="badge text-light p-2" style={{ backgroundColor: '#294a70' }}>
+              {filteredNewAccountRequests.length} Requests
+            </span>
+          </div>
 
-                        return fileCount > 0 ? (
+          {filteredNewAccountRequests.length > 0 ? (
+            <div className="table-responsive">
+              <Table hover className="mb-0 align-middle">
+                <thead>
+                  <tr>
+                    <th className="text-center">Request ID</th>
+                    <th className="text-center">Account Type</th>
+                    <th className="text-center">Last Name</th>
+                    <th className="text-center">First Name</th>
+                    <th className="text-center">Middle Name</th>
+                    <th className="text-center">School</th>
+                    <th className="text-center">Status</th>
+                    <th className="text-center">Date</th>
+                    <th className="text-center" style={{ width: "12%" }}>
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredNewAccountRequests.map((request) => (
+                    <tr key={request.id}>
+                      <td className="text-center">{request.id}</td>
+                      <td className="text-center">{request.selected_type}</td>
+                      <td className="text-center">{request.surname}</td>
+                      <td className="text-center">{request.first_name}</td>
+                      <td className="text-center">{formatMiddleName(request.middle_name)}</td>
+                      <td className="text-center">{request.school}</td>
+                      <td>
+                        <Badge
+                          bg={getStatusBadgeVariant(request.status)}
+                          style={{ fontSize: "0.85rem", padding: "0.4em 0.6em" }}
+                        >
+                          {request.status}
+                        </Badge>
+                      </td>
+                      <td>{new Date(request.created_at).toLocaleDateString()}</td>
+                      <td className="d-flex justify-content-between">
+                        <div>
                           <Button
                             size="sm"
-                            variant="outline-secondary"
-                            className="d-flex align-items-center"
-                            onClick={() => handleOpenFiles(request)}
-                            style={{width: '65px'}}
+                            variant="outline-info"
+                            className="d-flex align-items-center me-2"
+                            onClick={() => handleShowNewRequestDetails(request)}
                           >
-                            Files ({fileCount})
+                            View
                           </Button>
-                        ) : null;
-                      })()}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </Table>
-        </div>
-      ) : (
-        <div className="text-center py-5">
-          <i className="fas fa-search fa-3x text-muted mb-3"></i>
-          <h5>No new account requests found</h5>
-          <p className="text-muted">
-            Try adjusting your filters or search term
-          </p>
+                        </div>
+                        <div>
+                          {(() => {
+                            // Count valid files
+                            const files = {
+                              endorsement_letter: request.endorsement_letter || "",
+                              prc_id: request.prc_id || "",
+                              proof_of_identity: request.proof_of_identity || "",
+                            };
+                            const fileCount = Object.values(files).filter(
+                              (file) => file
+                            ).length;
+
+                            return fileCount > 0 ? (
+                              <Button
+                                size="sm"
+                                variant="outline-secondary"
+                                className="d-flex align-items-center"
+                                onClick={() => handleOpenFiles(request)}
+                                style={{ width: '65px' }}
+                              >
+                                Files ({fileCount})
+                              </Button>
+                            ) : null;
+                          })()}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </Table>
+            </div>
+          ) : (
+            <div className="text-center py-5">
+              <i className="fas fa-search fa-3x text-muted mb-3"></i>
+              <h5>No new account requests found</h5>
+              <p className="text-muted">
+                Try adjusting your filters or search term
+              </p>
+            </div>
+          )}
         </div>
       )}
 

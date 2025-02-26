@@ -67,13 +67,21 @@ const ResetAccountRequests = ({ resetAccountRequests, loading, filterStatus, sea
             html: `
                 <div class="request-details text-start">
                     <div class="request-info mb-4">
-                        <div class="row mb-2">
-                            <div class="col-md-4 fw-bold">Name:</div>
-                            <div class="col-md-8">${request.name}</div>
-                        </div>
-                        <div class="row mb-2">
+                    <div class="row mb-2">
                             <div class="col-md-4 fw-bold">Account Type:</div>
                             <div class="col-md-8">${request.selected_type}</div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-md-4 fw-bold">Last Name:</div>
+                            <div class="col-md-8">${request.surname}</div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-md-4 fw-bold">First Name:</div>
+                            <div class="col-md-8">${request.first_name}</div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-md-4 fw-bold">Middle Name:</div>
+                            <div class="col-md-8">${formatMiddleName(request.middle_name)}</div>
                         </div>
                         <div class="row mb-2">
                             <div class="col-md-4 fw-bold">School:</div>
@@ -172,6 +180,11 @@ const ResetAccountRequests = ({ resetAccountRequests, loading, filterStatus, sea
         }
     };
 
+    // Function to display N/A for empty middle names
+    const formatMiddleName = (middleName) => {
+        return middleName && middleName.trim() !== "" ? middleName : "N/A";
+    };
+
     const filteredResetAccountRequests = resetAccountRequests
         .filter(request => {
             if (filterStatus === "all") return true;
@@ -194,57 +207,73 @@ const ResetAccountRequests = ({ resetAccountRequests, loading, filterStatus, sea
                     </div>
                     <p className="mt-2">Loading requests...</p>
                 </div>
-            ) : filteredResetAccountRequests.length > 0 ? (
-                <div className="table-responsive">
-                    <Table hover className="mb-0 align-middle">
-                        <thead>
-                            <tr>
-                                <th className="text-center">Request ID</th>
-                                <th className="text-center">Name</th>
-                                <th className="text-center">Account Type</th>
-                                <th className="text-center">School</th>
-                                <th className="text-center">Employee Number</th>
-                                <th className="text-center">Status</th>
-                                <th className="text-center">Date</th>
-                                <th className="text-center">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {filteredResetAccountRequests.map((request) => (
-                                <tr key={request.id}>
-                                    <td className="text-center">{request.id}</td>
-                                    <td className="text-center">{request.name}</td>
-                                    <td className="text-center">{request.selected_type}</td>
-                                    <td className="text-center">{request.school}</td>
-                                    <td className="text-center">{request.employee_number}</td>
-                                    <td className="text-center">
-                                        <Badge 
-                                            bg={getStatusBadgeVariant(request.status)}
-                                            style={{ fontSize: "0.85rem", padding: "0.4em 0.6em" }}
-                                        >
-                                            {request.status}
-                                        </Badge>
-                                    </td>
-                                    <td className="text-center">{new Date(request.created_at).toLocaleDateString()}</td>
-                                    <td className="text-center">
-                                        <Button
-                                            size="sm"
-                                            variant="outline-info"
-                                            onClick={() => handleShowRequestDetails(request)}
-                                        >
-                                         View
-                                        </Button>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </Table>
-                </div>
             ) : (
-                <div className="text-center py-5">
-                    <i className="fas fa-search fa-3x text-muted mb-3"></i>
-                    <h5>No reset account requests found</h5>
-                    <p className="text-muted">Try adjusting your filters or search term</p>
+                <div>
+                    {/* Add a header with a badge for the count of filtered requests */}
+                    <div className="d-flex justify-content-between align-items-center mb-3">
+                        <h5 className="mb-0" style={{ color: '#294a70' }}>Reset Account Requests</h5>
+                        <span className="badge text-light p-2" style={{ backgroundColor: '#294a70' }}>
+                            {filteredResetAccountRequests.length} Requests
+                        </span>
+                    </div>
+
+                    {filteredResetAccountRequests.length > 0 ? (
+                        <div className="table-responsive">
+                            <Table hover className="mb-0 align-middle">
+                                <thead>
+                                    <tr>
+                                        <th className="text-center">Request ID</th>
+                                        <th className="text-center">Account Type</th>
+                                        <th className="text-center">Last Name</th>
+                                        <th className="text-center">First Name</th>
+                                        <th className="text-center">Middle Name</th>
+                                        <th className="text-center">School</th>
+                                        {/* <th className="text-center">Employee Number</th> */}
+                                        <th className="text-center">Status</th>
+                                        <th className="text-center">Date</th>
+                                        <th className="text-center">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {filteredResetAccountRequests.map((request) => (
+                                        <tr key={request.id}>
+                                            <td className="text-center">{request.id}</td>
+                                            <td className="text-center">{request.selected_type}</td>
+                                            <td className="text-center">{request.surname}</td>
+                                            <td className="text-center">{request.first_name}</td>
+                                            <td className="text-center">{formatMiddleName(request.middle_name)}</td>
+                                            <td className="text-center">{request.school}</td>
+                                            {/* <td className="text-center">{request.employee_number}</td> */}
+                                            <td className="text-center">
+                                                <Badge 
+                                                    bg={getStatusBadgeVariant(request.status)}
+                                                    style={{ fontSize: "0.85rem", padding: "0.4em 0.6em" }}
+                                                >
+                                                    {request.status}
+                                                </Badge>
+                                            </td>
+                                            <td className="text-center">{new Date(request.created_at).toLocaleDateString()}</td>
+                                            <td className="text-center">
+                                                <Button
+                                                    size="sm"
+                                                    variant="outline-info"
+                                                    onClick={() => handleShowRequestDetails(request)}
+                                                >
+                                                    View
+                                                </Button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </Table>
+                        </div>
+                    ) : (
+                        <div className="text-center py-5">
+                            <i className="fas fa-search fa-3x text-muted mb-3"></i>
+                            <h5>No reset account requests found</h5>
+                            <p className="text-muted">Try adjusting your filters or search term</p>
+                        </div>
+                    )}
                 </div>
             )}
 

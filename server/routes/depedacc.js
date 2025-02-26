@@ -4,18 +4,16 @@ const multer = require("multer");
 const path = require("path");
 const conn = require("./conn");
 
-// Add CORS middleware
 router.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "*");
-  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-  if (req.method === "OPTIONS") {
-    return res.sendStatus(200);
-  }
-  next();
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+    if (req.method === "OPTIONS") {
+        return res.sendStatus(200);
+    }
+    next();
 });
 
-// Configure file storage
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
         cb(null, "./deped_uploads/");
@@ -38,67 +36,69 @@ const fileFilter = (req, file, cb) => {
 const upload = multer({
     storage,
     fileFilter,
-    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+    limits: { fileSize: 5 * 1024 * 1024 },
 }).fields([
     { name: "proofOfIdentity", maxCount: 1 },
     { name: "prcID", maxCount: 1 },
     { name: "endorsementLetter", maxCount: 1 }
 ]);
 
-// Process JSON data for reset requests
 router.use(express.json());
 
-// Create a new DepEd Account Request
 router.post("/request-deped-account", (req, res) => {
+    console.log("request header", req.headers);
+    console.log("req files", req.files);
     upload(req, res, function (err) {
         if (err instanceof multer.MulterError) {
+            console.error("Multer error:", err);
             return res.status(400).json({ error: "File upload error: " + err.message });
         } else if (err) {
+            console.error("General upload error:", err);
             return res.status(400).json({ error: err.message });
         }
 
         const {
-            selected_type,
-            name,
+            selectedType,
+            surname,
+            firstName,
+            middleName,
             designation,
             school,
-            school_id,
-            personal_gmail
+            schoolID,
+            personalGmail
         } = req.body;
 
-        // Debug log
-        console.log("New account request data:", req.body);
-        console.log("Files received:", req.files);
-
-        // Validate required fields
-        if (!selected_type || !name || !designation || !school || !school_id || !personal_gmail) {
+        if (!selectedType || !surname || !firstName || !designation || !school || !schoolID || !personalGmail) {
+            console.error("Missing fields:", req.body);
             return res.status(400).json({ error: "Missing required fields" });
         }
 
-        // Get filenames from uploaded files
+        const fullName = `${surname}, ${firstName} ${middleName || ''}`.trim();
+
         const proofOfIdentity = req.files?.proofOfIdentity?.[0]?.filename;
         const prcID = req.files?.prcID?.[0]?.filename;
         const endorsementLetter = req.files?.endorsementLetter?.[0]?.filename;
 
         if (!proofOfIdentity || !prcID || !endorsementLetter) {
+            console.error("Missing files:", req.files);
             return res.status(400).json({ error: "All files are required" });
         }
 
         const query = `
-            INSERT INTO deped_account_requests 
-            (selected_type, name, designation, school, school_id, personal_gmail, 
-             proof_of_identity, prc_id, endorsement_letter) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO deped_account_requests
+            (selected_type, name, surname, first_name, middle_name, designation, school, school_id, personal_gmail,
+             proof_of_identity, prc_id, endorsement_letter)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `;
 
         conn.query(
             query,
-            [selected_type, name, designation, school, school_id, personal_gmail,
+            [selectedType, fullName, surname, firstName, middleName || '', designation, school, schoolID, personalGmail,
              proofOfIdentity, prcID, endorsementLetter],
             (err, result) => {
                 if (err) {
                     console.error("Database error:", err);
-                    return res.status(500).json({ error: "Failed to submit request" });
+                    return res.status(500).json({ error: "Failed to submit request", dbError: err.message });
                 }
                 res.json({
                     message: "New account request submitted successfully",
@@ -109,47 +109,39 @@ router.post("/request-deped-account", (req, res) => {
     });
 });
 
-// Add reset account request endpoint
 router.post("/reset-deped-account", (req, res) => {
-    // Log the received data
-    console.log("Reset request received:", req.body);
-    
+    console.log("Request Body:", req.body); // Log the entire request body
+
     const {
-        selected_type,
-        name,
+        selectedType,
+        surname,
+        firstName,
+        middleName,
         school,
-        school_id,
-        employee_number
+        schoolID,
+        employeeNumber
     } = req.body;
 
-    // Improved validation
-    const missingFields = [];
-    if (!selected_type) missingFields.push("selected_type");
-    if (!name) missingFields.push("name");
-    if (!school) missingFields.push("school");
-    if (!school_id) missingFields.push("school_id");
-    if (!employee_number) missingFields.push("employee_number");
-
-    if (missingFields.length > 0) {
-        return res.status(400).json({ 
-            error: "Missing required fields", 
-            missingFields: missingFields 
-        });
+    if (!selectedType || !surname || !firstName || !school || !schoolID || !employeeNumber) {
+        console.error("Missing fields:", req.body);
+        return res.status(400).json({ error: "Missing required fields" });
     }
 
+    const fullName = `${surname}, ${firstName} ${middleName || ''}`.trim();
+
     const query = `
-        INSERT INTO deped_account_reset_requests 
-        (selected_type, name, school, school_id, employee_number) 
-        VALUES (?, ?, ?, ?, ?)
+        INSERT INTO deped_account_reset_requests
+        (selected_type, name, surname, first_name, middle_name, school, school_id, employee_number)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
     conn.query(
         query,
-        [selected_type, name, school, school_id, employee_number],
+        [selectedType, fullName, surname, firstName, middleName || '', school, schoolID, employeeNumber],
         (err, result) => {
             if (err) {
                 console.error("Database error:", err);
-                return res.status(500).json({ error: "Failed to submit reset request" });
+                return res.status(500).json({ error: "Failed to submit reset request", dbError: err.message });
             }
             res.json({
                 message: "Your request submitted successfully",
@@ -159,10 +151,21 @@ router.post("/reset-deped-account", (req, res) => {
     );
 });
 
-// Get all new account requests
+// New route to fetch schools
+router.get("/schoolList", (req, res) => {
+    const query = "SELECT schoolCode, school FROM tbl_users GROUP BY schoolCode, school"; // Get all schools
+    conn.query(query, (err, results) => {
+        if (err) {
+            console.error("Database error:", err);
+            return res.status(500).json({ error: err.message });
+        }
+        res.json(results);
+    });
+});
+
 router.get("/deped-account-requests", (req, res) => {
     const query = `
-        SELECT * FROM deped_account_requests 
+        SELECT * FROM deped_account_requests
         ORDER BY created_at ASC
     `;
 
@@ -175,10 +178,9 @@ router.get("/deped-account-requests", (req, res) => {
     });
 });
 
-// Get all reset account requests
 router.get("/deped-account-reset-requests", (req, res) => {
     const query = `
-        SELECT * FROM deped_account_reset_requests 
+        SELECT * FROM deped_account_reset_requests
         ORDER BY created_at ASC
     `;
 
@@ -191,14 +193,13 @@ router.get("/deped-account-reset-requests", (req, res) => {
     });
 });
 
-// Update status for new account request
 router.put("/deped-account-requests/:id/status", (req, res) => {
     const { id } = req.params;
     const { status } = req.body;
 
     const query = `
-        UPDATE deped_account_requests 
-        SET status = ? 
+        UPDATE deped_account_requests
+        SET status = ?
         WHERE id = ?
     `;
 
@@ -211,14 +212,13 @@ router.put("/deped-account-requests/:id/status", (req, res) => {
     });
 });
 
-// Update status for reset account request
 router.put("/deped-account-reset-requests/:id/status", (req, res) => {
     const { id } = req.params;
     const { status, notes } = req.body;
 
     const query = `
-        UPDATE deped_account_reset_requests 
-        SET status = ?, 
+        UPDATE deped_account_reset_requests
+        SET status = ?,
             notes = ?,
             completed_at = ${status === 'completed' ? 'CURRENT_TIMESTAMP' : 'NULL'}
         WHERE id = ?
