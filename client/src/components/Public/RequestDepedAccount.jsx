@@ -359,7 +359,7 @@ import { Modal } from 'react-bootstrap';
                           <Form.Control
                             type="text"
                             name="middleName"
-                            value={formData.middleName || 'N/A'}
+                            value={formData.middleName || ''}
                             onChange={handleChange}
                             placeholder="Middle Name"
                           />
