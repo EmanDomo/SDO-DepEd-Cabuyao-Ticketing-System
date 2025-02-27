@@ -28,14 +28,18 @@ router.get("/schoolbatches", (req, res) => {
     });
   });
 
-router.get("/batches", (req, res) => {
-    const query = "SELECT * FROM tbl_batches";
-    conn.query(query, (err, result) => {
+router.get("/batches/:schoolCode", (req, res) => {
+    const { schoolCode } = req.params;
+    console.log("Received schoolCode:", schoolCode); 
+
+    const query = "SELECT * FROM tbl_batches WHERE schoolCode = ? AND status = 'Delivered'";
+
+    conn.query(query, [schoolCode], (err, result) => {
         if (err) {
             console.error("Error fetching batches:", err.message);
             return res.status(500).json({ error: err.message });
         }
-        console.log("Fetched batches:", result);
+        console.log("Fetched batches from DB:", result); 
         res.json(result);
     });
 });

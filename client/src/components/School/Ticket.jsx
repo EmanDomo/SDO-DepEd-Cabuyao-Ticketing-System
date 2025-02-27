@@ -191,16 +191,38 @@ const handleViewDevices = async (batchId) => {
   useEffect(() => {
     const fetchBatches = async () => {
       try {
-        const response = await axios.get("http://localhost:8080/batches"); // Updated endpoint
+        const token = localStorage.getItem("token");
+        if (!token) throw new Error("No authentication token");
+        
+        const decoded = jwtDecode(token);
+        console.log("Decoded token:", decoded); // Debug to see what's in your token
+        
+        if (!decoded.schoolCode) {
+          console.error("No school code in token");
+          return;
+        }
+        
+        const response = await axios.get(
+          `http://localhost:8080/batches/${decoded.schoolCode}`, 
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        
+        console.log("Batches response:", response.data);
         setBatches(response.data);
       } catch (error) {
         console.error("Error fetching batches:", error);
-        // Add user-friendly error message
-        setError("Unable to load batches. Please try again later.");
+        // Add more detailed error logging
+        if (error.response) {
+          console.error("Server response:", error.response.status, error.response.data);
+        }
       }
     };
 
-    fetchBatches();
+    fetchBatches(); // Call the function
   }, []);
 
   const handleChange = (e) => {
