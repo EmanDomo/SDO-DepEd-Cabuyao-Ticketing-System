@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Card, Table, Button, Badge } from "react-bootstrap";
 import axios from "axios";
 import Swal from "sweetalert2";
@@ -9,33 +9,45 @@ const ViewBatches = ({ filterStatus = "all", searchTerm = "" }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    fetchBatches();
-    // Set up a refresh interval (every 30 seconds)
-    const interval = setInterval(fetchBatches, 30000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const fetchBatches = async () => {
+  // Use useCallback to prevent unnecessary re-renders
+  const fetchBatches = useCallback(async () => {
     try {
       setLoading(true);
       const response = await axios.get("http://localhost:8080/batches");
       setBatches(Array.isArray(response.data) ? response.data : []);
+      setError(""); // Clear any previous errors
     } catch (err) {
       console.error("Error fetching batches:", err);
       setError("Failed to load batches. Please try again later.");
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchBatches();
+    // Set up a refresh interval (every 30 seconds)
+    const interval = setInterval(fetchBatches, 30000);
+    return () => clearInterval(interval);
+  }, [fetchBatches]);
 
   const handleViewDevices = async (batchId) => {
     try {
-      const response = await axios.get(`http://localhost:8080/batch/${batchId}/devices`);
+      const response = await axios.get(
+        `http://localhost:8080/batch/${batchId}/devices`
+      );
       const devices = response.data;
 
+      if (!Array.isArray(devices) || devices.length === 0) {
+        return Swal.fire({
+          title: "No Devices",
+          text: "No devices found for this batch",
+          icon: "info",
+        });
+      }
+
       Swal.fire({
-        title: 'Batch Devices',
+        title: "Batch Devices",
         html: `
           <div class="table-responsive">
             <table class="table table-hover mb-0">
@@ -46,70 +58,121 @@ const ViewBatches = ({ filterStatus = "all", searchTerm = "" }) => {
                 </tr>
               </thead>
               <tbody>
-                ${devices.map(device => `
+                ${devices
+                  .map(
+                    (device) => `
                   <tr>
-                    <td class="px-3">${device.device_type}</td>
-                    <td class="px-3">${device.device_number}</td>
+                    <td class="px-3">${device.device_type || 'N/A'}</td>
+                    <td class="px-3">${device.device_number || 'N/A'}</td>
                   </tr>
-                `).join('')}
+                `
+                  )
+                  .join("")}
               </tbody>
             </table>
           </div>
         `,
-        width: '800px',
+        width: "800px",
         showCloseButton: true,
         showConfirmButton: false,
         didOpen: () => {
           const content = Swal.getHtmlContainer();
           if (content) {
-            content.style.textAlign = 'left';
+            content.style.textAlign = "left";
           }
-        }
+        },
       });
     } catch (error) {
-      setError("Failed to load devices");
       console.error("View devices error:", error);
       Swal.fire({
         title: "Error",
         text: "Failed to load batch devices",
-        icon: "error"
+        icon: "error",
+      });
+    }
+  };
+
+  const handleCancelBatch = async (batchId) => {
+    try {
+      const result = await Swal.fire({
+        title: "Are you sure?",
+        text: "Do you want to cancel this batch?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#d33",
+        cancelButtonColor: "#3085d6",
+        confirmButtonText: "Yes, cancel it!",
+      });
+
+      if (result.isConfirmed) {
+        await axios.put(`http://localhost:8080/cancelbatch/${batchId}`);
+
+        await Swal.fire({
+          title: "Cancelled!",
+          text: "The batch has been cancelled successfully.",
+          icon: "success",
+        });
+
+        // Call fetchBatches to update the list immediately
+        fetchBatches();
+      }
+    } catch (error) {
+      console.error("Cancel batch error:", error);
+      Swal.fire({
+        title: "Error",
+        text: error.response?.data?.error || "Failed to cancel batch",
+        icon: "error",
       });
     }
   };
 
   const handleBatchDetails = (batch) => {
     Swal.fire({
-      title: `Batch: ${batch.batch_number}`,
+      title: `Batch: ${batch.batch_number || 'Unknown'}`,
       html: `
         <div class="batch-details text-start">
           <div class="batch-info mb-4">
             <div class="row mb-2">
               <div class="col-md-4 fw-bold">School Name:</div>
-              <div class="col-md-8">${batch.school_name}</div>
+              <div class="col-md-8">${batch.school_name || 'N/A'}</div>
             </div>
             <div class="row mb-2">
               <div class="col-md-4 fw-bold">School Code:</div>
-              <div class="col-md-8">${batch.schoolCode}</div>
+              <div class="col-md-8">${batch.schoolCode || 'N/A'}</div>
             </div>
             <div class="row mb-2">
               <div class="col-md-4 fw-bold">Send Date:</div>
-              <div class="col-md-8">${new Date(batch.send_date).toLocaleDateString()}</div>
+              <div class="col-md-8">${batch.send_date ? new Date(batch.send_date).toLocaleDateString() : 'N/A'}</div>
             </div>
             <div class="row mb-2">
               <div class="col-md-4 fw-bold">Status:</div>
               <div class="col-md-8">
                 <span class="badge rounded-pill" style="background-color: ${getStatusColor(batch.status)}; 
                       font-size: 0.9rem; padding: 0.5em 1em;">
-                  ${batch.status}
+                  ${batch.status || "Unknown"}
                 </span>
               </div>
             </div>
-            ${batch.received_date ? `
+            ${
+              batch.received_date
+                ? `
             <div class="row mb-2">
               <div class="col-md-4 fw-bold">Received Date:</div>
               <div class="col-md-8">${new Date(batch.received_date).toLocaleDateString()}</div>
             </div>
-            ` : ''}
+            `
+                : ""
+            }
+            ${
+              batch.cancelled_date
+                ? `
+            <div class="row mb-2">
+              <div class="col-md-4 fw-bold">Cancelled Date:</div>
+              <div class="col-md-8">${new Date(batch.cancelled_date).toLocaleDateString()}</div>
+            </div>
+            `
+                : ""
+            }
           </div>
           
           <div class="d-flex justify-content-center mt-4">
@@ -124,49 +187,64 @@ const ViewBatches = ({ filterStatus = "all", searchTerm = "" }) => {
       showCloseButton: true,
       didOpen: () => {
         const viewDevicesBtn = document.getElementById("viewDevicesBtn");
-        viewDevicesBtn.addEventListener("click", () => {
-          handleViewDevices(batch.batch_id);
-        });
-      }
+        if (viewDevicesBtn) {
+          viewDevicesBtn.addEventListener("click", () => {
+            handleViewDevices(batch.batch_id);
+          });
+        }
+      },
     });
   };
 
   const getStatusColor = (status) => {
+    if (!status) return "#6c757d"; // Default gray for undefined status
+
     switch (status.toLowerCase()) {
       case "delivered":
-        return "#28a745"; 
+        return "#28a745";
       case "pending":
-        return "#ffc107"; 
+        return "#ffc107";
+      case "cancelled":
+        return "#dc3545";
       default:
-        return "#6c757d"; 
+        return "#6c757d";
     }
   };
 
   const getStatusBadgeVariant = (status) => {
+    if (!status) return "secondary"; // Default for undefined status
+
     switch (status.toLowerCase()) {
       case "delivered":
         return "success";
       case "pending":
         return "warning";
+      case "cancelled":
+        return "danger";
       default:
         return "secondary";
     }
   };
 
-  const filteredBatches = batches.filter(batch => {
-    const statusMatch = filterStatus === "all" || 
-                        batch.status.toLowerCase() === filterStatus.toLowerCase();
+  // Memoize filtered batches to avoid recalculation on each render
+  const filteredBatches = React.useMemo(() => {
+    return batches.filter((batch) => {
+      const statusMatch =
+        filterStatus === "all" ||
+        (batch.status &&
+          batch.status.toLowerCase() === filterStatus.toLowerCase());
 
-    const search = searchTerm.toLowerCase();
-    const searchMatch = search === "" || 
-                        batch.batch_number.toLowerCase().includes(search) ||
-                        batch.school_name.toLowerCase().includes(search) ||
-                        batch.schoolCode.toString().includes(search);
-    
-    return statusMatch && searchMatch;
-  });
+      const search = searchTerm.toLowerCase();
+      const searchMatch =
+        search === "" ||
+        (batch.batch_number &&
+          batch.batch_number.toLowerCase().includes(search)) ||
+        (batch.school_name && batch.school_name.toLowerCase().includes(search)) ||
+        (batch.schoolCode && batch.schoolCode.toString().includes(search));
 
-  const displayBatches = filteredBatches;
+      return statusMatch && searchMatch;
+    });
+  }, [batches, filterStatus, searchTerm]);
 
   if (loading && batches.length === 0) {
     return (
@@ -181,12 +259,20 @@ const ViewBatches = ({ filterStatus = "all", searchTerm = "" }) => {
   return (
     <div className="vh-90 d-flex flex-column">
       <Card className="flex-grow-1 m-0 border-0 rounded-0">
-        <Card.Header className="py-3 sticky-top" style={{ backgroundColor: "transparent" }}>
+        <Card.Header
+          className="py-3 sticky-top"
+          style={{ backgroundColor: "transparent" }}
+        >
           <div className="container-fluid">
             <div className="d-flex justify-content-between align-items-center">
-              <h5 className="mb-0" style={{color: '#294a70'}}>All Batches</h5>
-              <span className="badge text-light p-2" style={{backgroundColor: '#294a70'}}>
-                {displayBatches.length} Batches
+              <h5 className="mb-0" style={{ color: "#294a70" }}>
+                All Batches
+              </h5>
+              <span
+                className="badge text-light p-2"
+                style={{ backgroundColor: "#294a70" }}
+              >
+                {filteredBatches.length} Batches
               </span>
             </div>
           </div>
@@ -197,53 +283,75 @@ const ViewBatches = ({ filterStatus = "all", searchTerm = "" }) => {
               {error}
             </div>
           )}
-          
-          {displayBatches.length === 0 ? (
+
+          {filteredBatches.length === 0 ? (
             <div className="d-flex justify-content-center align-items-center h-100">
               <div className="text-muted">
-                {searchTerm || filterStatus !== "all" 
+                {searchTerm || filterStatus !== "all"
                   ? "No batches found matching your search criteria."
                   : "No batches found."}
               </div>
             </div>
           ) : (
-            <div className="table-responsive" style={{ height: 'calc(100vh - 180px)', overflowY: 'auto' }}>
+            <div
+              className="table-responsive"
+              style={{ height: "calc(100vh - 180px)", overflowY: "auto" }}
+            >
               <Table hover className="mb-0">
-                <thead className="sticky-top bg-white" style={{ top: '0' }}>
+                <thead className="sticky-top bg-white" style={{ top: "0" }}>
                   <tr>
-                    <th className="px-3" style={{color: '#294a70'}}>Batch No.</th>
-                    <th className="px-3" style={{color: '#294a70'}}>School Name</th>
-                    <th className="px-3" style={{color: '#294a70'}}>School Code</th>
-                    <th className="px-3" style={{color: '#294a70'}}>Send Date</th>
-                    <th className="px-3" style={{color: '#294a70'}}>Status</th>
-                    <th className="px-3" style={{color: '#294a70'}}>Actions</th>
+                    <th className="px-3" style={{ color: "#294a70" }}>
+                      Batch No.
+                    </th>
+                    <th className="px-3" style={{ color: "#294a70" }}>
+                      School Name
+                    </th>
+                    <th className="px-3" style={{ color: "#294a70" }}>
+                      School Code
+                    </th>
+                    <th className="px-3" style={{ color: "#294a70" }}>
+                      Send Date
+                    </th>
+                    <th className="px-3" style={{ color: "#294a70" }}>
+                      Status
+                    </th>
+                    <th className="px-3" style={{ color: "#294a70" }}>
+                      Actions
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
-                  {displayBatches.map((batch) => (
+                  {filteredBatches.map((batch) => (
                     <tr key={batch.batch_id}>
                       <td className="px-3">{batch.batch_number}</td>
                       <td className="px-3">{batch.school_name}</td>
                       <td className="px-3">{batch.schoolCode}</td>
-                      <td className="px-3">{new Date(batch.send_date).toLocaleDateString()}</td>
+                      <td className="px-3">
+                        {batch.send_date
+                          ? new Date(batch.send_date).toLocaleDateString()
+                          : "-"}
+                      </td>
                       <td className="px-3">
                         <Badge
                           bg={getStatusBadgeVariant(batch.status)}
-                          style={{ fontSize: "0.85rem", padding: "0.4em 0.6em" }}
+                          style={{
+                            fontSize: "0.85rem",
+                            padding: "0.4em 0.6em",
+                          }}
                         >
-                          {batch.status}
+                          {batch.status || "Unknown"}
                         </Badge>
                       </td>
                       <td className="px-3">
                         <div className="d-flex gap-2 flex-wrap">
-                          {/* <Button
+                          <Button
                             size="sm"
                             variant="outline-info"
                             className="d-flex align-items-center"
                             onClick={() => handleBatchDetails(batch)}
                           >
                             <FaEye className="me-1" /> View Details
-                          </Button> */}
+                          </Button>
                           <Button
                             size="sm"
                             variant="outline-secondary"
@@ -251,6 +359,18 @@ const ViewBatches = ({ filterStatus = "all", searchTerm = "" }) => {
                           >
                             View Devices
                           </Button>
+                          {batch.status &&
+                            batch.status.toLowerCase() === "pending" && (
+                              <Button
+                                size="sm"
+                                variant="outline-danger"
+                                onClick={() =>
+                                  handleCancelBatch(batch.batch_id)
+                                }
+                              >
+                                Cancel Batch
+                              </Button>
+                            )}
                         </div>
                       </td>
                     </tr>
@@ -266,22 +386,23 @@ const ViewBatches = ({ filterStatus = "all", searchTerm = "" }) => {
         .dropdown-toggle::after {
           margin-left: 0.5em;
         }
-        
+
         .batch-details .badge {
           box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
-        
-        .table th, .table td {
+
+        .table th,
+        .table td {
           vertical-align: middle;
         }
-        
+
         /* Responsive adjustments */
         @media (max-width: 767px) {
           .d-flex.gap-2 {
             flex-direction: column;
             gap: 0.5rem !important;
           }
-          
+
           .d-flex.gap-2 .btn {
             width: 100%;
           }

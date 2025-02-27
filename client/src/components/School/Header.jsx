@@ -204,7 +204,13 @@ const Navbar = () => {
                 href="/receivedbatches" 
                 className={`nav-link text-dark py-2 px-4 dropdown-item hover-effect ${isActive('/receivedbatches') ? 'active-nav-item' : ''}`}
               >
-                Completed 
+                Received 
+              </a>
+              <a 
+                href="/cancelledbatches" 
+                className={`nav-link text-dark py-2 px-4 dropdown-item hover-effect ${isActive('/cancelledbatches') ? 'active-nav-item' : ''}`}
+              >
+                Cancelled 
               </a>
             </div>
           </div>

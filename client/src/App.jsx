@@ -10,7 +10,6 @@ import ProtectedRoute from "./components/Context/ProtectedRoutes";
 // School
 import SchoolDashboard from "./components/School/SchoolDashboard";
 import Ticket from "./components/School/Ticket";
-import ReceiveBatch from "./components/School/ReceiveBatch";
 import Completed from "./components/School/Status/Completed";
 import Pending from "./components/School/Status/Pending";
 import InProgress from "./components/School/Status/InProgress";
@@ -18,6 +17,7 @@ import OnHold from "./components/School/Status/OnHold";
 import Rejected from "./components/School/Status/Rejected";
 import ReceivedBatches from "./components/School/Status/ReceivedBatches";
 import PendingBatches from "./components/School/Status/PendingBatches";
+import CancelledBatches from "./components/School/Status/CancelledBatches";
 
 // Admin
 import AdminDashboard from "./components/Admin/AdminDashboard";
@@ -93,14 +93,6 @@ function App() {
             }
           />
           <Route
-            path="/recievebatch"
-            element={
-              <ProtectedRoute allowedRoles={["Staff"]}>
-                <ReceiveBatch />
-              </ProtectedRoute>
-            }
-          />
-          <Route
             path="/receivedbatches"
             element={
               <ProtectedRoute allowedRoles={["Staff"]}>
@@ -113,6 +105,14 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={["Staff"]}>
                 <PendingBatches />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/cancelledbatches"
+            element={
+              <ProtectedRoute allowedRoles={["Staff"]}>
+                <CancelledBatches />
               </ProtectedRoute>
             }
           />

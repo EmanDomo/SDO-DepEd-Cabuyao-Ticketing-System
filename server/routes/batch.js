@@ -40,6 +40,7 @@ router.get("/batches", (req, res) => {
     });
 });
 
+
 router.get("/receivebatch/:schoolCode", (req, res) => {
     const { schoolCode } = req.params;
     console.log("Received schoolCode:", schoolCode); 
@@ -241,6 +242,102 @@ router.get("/receivebatch/:schoolCode/received", (req, res) => {
         res.json(result);
     });
 });
+router.get("/receivebatch/:schoolCode/:status", (req, res) => {
+    const { schoolCode, status } = req.params;
+    let orderByColumn;
+    
+    // Determine sorting based on status
+    switch(status.toLowerCase()) {
+        case 'received':
+        case 'delivered':
+            orderByColumn = 'received_date';
+            break;
+        case 'cancelled':
+            orderByColumn = 'cancelled_date';
+            break;
+        default:
+            orderByColumn = 'send_date';
+    }
+    
+    // Safe query that works even if the column doesn't exist
+    const query = `
+        SELECT * FROM tbl_batches 
+        WHERE schoolCode = ? 
+        AND status = ?
+        ORDER BY send_date DESC
+    `;
+    
+    conn.query(query, [schoolCode, status === 'received' ? 'Delivered' : status.charAt(0).toUpperCase() + status.slice(1).toLowerCase()], (err, result) => {
+        if (err) {
+            console.error(`Error fetching ${status} batches:`, err.message);
+            return res.status(500).json({ error: `Failed to fetch ${status} batches` });
+        }
+        res.json(result || []);
+    });
+});
+
+router.get("/receivebatch/:schoolCode/cancelled", (req, res) => {
+    const { schoolCode } = req.params;
+    const query = `
+        SELECT * FROM tbl_batches 
+        WHERE schoolCode = ? 
+        AND status = 'Cancelled'
+        ORDER BY send_date DESC  /* Fallback to send_date if cancelled_date doesn't exist */
+    `;
+    
+    conn.query(query, [schoolCode], (err, result) => {
+        if (err) {
+            console.error("Error fetching cancelled batches:", err.message);
+            return res.status(500).json({ error: "Failed to fetch cancelled batches" });
+        }
+        res.json(result || []);
+    });
+});
+
+router.put("/cancelbatch/:batchId", (req, res) => {
+    const { batchId } = req.params;
+    
+    // First check if the batch exists and has the correct status
+    const checkQuery = "SELECT status FROM tbl_batches WHERE batch_id = ?";
+    
+    conn.query(checkQuery, [batchId], (checkErr, checkResult) => {
+      if (checkErr) {
+        console.error("Error checking batch:", checkErr.message);
+        return res.status(500).json({ error: "Failed to check batch status" });
+      }
+      
+      if (checkResult.length === 0) {
+        return res.status(404).json({ error: "Batch not found" });
+      }
+      
+      if (checkResult[0].status !== "Pending") {
+        return res.status(400).json({ 
+          error: "Only pending batches can be cancelled" 
+        });
+      }
+      
+      // Proceed with the update
+      const updateQuery = `
+        UPDATE tbl_batches 
+        SET status = 'Cancelled', 
+            cancelled_date = CURRENT_DATE() 
+        WHERE batch_id = ?
+      `;
+      
+      conn.query(updateQuery, [batchId], (err, result) => {
+        if (err) {
+          console.error("Error cancelling batch:", err.message);
+          return res.status(500).json({ error: "Failed to cancel batch" });
+        }
+        
+        res.json({ 
+          message: "Batch cancelled successfully",
+          batchId
+        });
+      });
+    });
+  });
+
 
 router.get("/batch/:batchId/devices", (req, res) => {
     const { batchId } = req.params;

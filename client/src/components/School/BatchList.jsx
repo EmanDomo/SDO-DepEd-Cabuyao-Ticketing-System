@@ -1,20 +1,30 @@
-import React, { useState, useEffect } from "react";
-import { Card, Table, Button, Form, InputGroup } from "react-bootstrap";
+import React, { useState, useEffect, useCallback } from "react";
+import { Card, Table, Button, Form, InputGroup, Alert } from "react-bootstrap";
 import { jwtDecode } from "jwt-decode";
 import axios from "axios";
 import Swal from "sweetalert2";
-import { FaSearch } from "react-icons/fa";
+import { FaSearch, FaExclamationTriangle } from "react-icons/fa";
 
 const BatchList = ({ status }) => {
   const [batches, setBatches] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
+  const [retryCount, setRetryCount] = useState(0);
+  const maxRetries = 3;
 
   const handleViewDevices = async (batchId) => {
     try {
       const response = await axios.get(`http://localhost:8080/batch/${batchId}/devices`);
       const devices = response.data;
+
+      if (!Array.isArray(devices) || devices.length === 0) {
+        return Swal.fire({
+          title: "No Devices",
+          text: "No devices found for this batch",
+          icon: "info",
+        });
+      }
 
       Swal.fire({
         title: 'Batch Devices',
@@ -30,8 +40,8 @@ const BatchList = ({ status }) => {
               <tbody>
                 ${devices.map(device => `
                   <tr>
-                    <td class="px-3">${device.device_type}</td>
-                    <td class="px-3">${device.device_number}</td>
+                    <td class="px-3">${device.device_type || 'N/A'}</td>
+                    <td class="px-3">${device.device_number || 'N/A'}</td>
                   </tr>
                 `).join('')}
               </tbody>
@@ -49,8 +59,12 @@ const BatchList = ({ status }) => {
         }
       });
     } catch (error) {
-      setError("Failed to load devices");
       console.error("View devices error:", error);
+      Swal.fire({
+        title: "Error",
+        text: "Failed to load devices",
+        icon: "error"
+      });
     }
   };
 
@@ -73,45 +87,79 @@ const BatchList = ({ status }) => {
           text: "The batch has been received successfully.",
           icon: "success"
         });
+        
+        // Update list without full reload
         setBatches((prevBatches) =>
           prevBatches.filter((batch) => batch.batch_id !== batchId)
         );
       }
     } catch (error) {
-      setError("Failed to receive batch");
       console.error("Receive error:", error);
+      Swal.fire({
+        title: "Error",
+        text: error.response?.data?.error || "Failed to receive batch",
+        icon: "error"
+      });
     }
   };
 
-  useEffect(() => {
-    const fetchBatches = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        if (!token) throw new Error("No authentication token");
-
-        const decoded = jwtDecode(token);
-        const response = await axios.get(
-          `http://localhost:8080/receivebatch/${decoded.schoolCode}/${status.toLowerCase()}`
-        );
-        setBatches(Array.isArray(response.data) ? response.data : []);
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
+  const fetchBatches = useCallback(async () => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        throw new Error("No authentication token found");
       }
-    };
+  
+      // Decode JWT token to get school code
+      const decoded = jwtDecode(token);
+      if (!decoded.schoolCode) {
+        throw new Error("School code not found in token");
+      }
+      
+      // Use lowercase status for API endpoint
+      const statusParam = status.toLowerCase();
+      
+      const response = await axios.get(
+        `http://localhost:8080/receivebatch/${decoded.schoolCode}/${statusParam}`
+      );
+      
+      // Handle different API response formats safely
+      setBatches(Array.isArray(response.data) ? response.data : []);
+      setError(""); // Clear any previous errors
+      setRetryCount(0); // Reset retry count on success
+    } catch (err) {
+      console.error(`Error fetching ${status} batches:`, err);
+      
+      // Format error message for display
+      const errorMessage = err.response?.data?.error || err.message || `Failed to fetch ${status} batches`;
+      setError(errorMessage);
+      
+      // Implement retry logic for network errors
+      if (retryCount < maxRetries && (err.code === 'ECONNABORTED' || !err.response)) {
+        setRetryCount(prev => prev + 1);
+        setTimeout(() => fetchBatches(), 2000); // Retry after 2 seconds
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, [status, retryCount]);
 
+  useEffect(() => {
     fetchBatches();
+    
+    // Set up refresh interval
     const interval = setInterval(fetchBatches, 30000);
     return () => clearInterval(interval);
-  }, [status]);
+  }, [fetchBatches]);
 
-  // Filter batches based on search term
-  const filteredBatches = batches.filter(batch => 
-    batch.batch_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    batch.school_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    batch.status.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Memoize filtered batches
+  const filteredBatches = React.useMemo(() => {
+    return batches.filter(batch => 
+      (batch.batch_number && batch.batch_number.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (batch.school_name && batch.school_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (batch.status && batch.status.toLowerCase().includes(searchTerm.toLowerCase()))
+    );
+  }, [batches, searchTerm]);
 
   if (loading) return (
     <div className="d-flex justify-content-center align-items-center vh-100">
@@ -121,11 +169,20 @@ const BatchList = ({ status }) => {
     </div>
   );
 
-  if (error) return (
-    <div className="d-flex justify-content-center align-items-center vh-100">
-      <div className="text-danger">{error}</div>
-    </div>
-  );
+  const getStatusStyle = () => {
+    switch(status.toLowerCase()) {
+      case "pending":
+        return { color: "#ffffff", bgColor: "#ffc107" }; 
+      case "received":
+      case "delivered":
+        return { color: "#ffffff", bgColor: "#28a745" }; 
+      case "cancelled":
+        return { color: "#ffffff", bgColor: "#dc3545" }; 
+      default:
+        return { color: "#ffffff", bgColor: "#6c757d" }; 
+    }
+  };
+  const statusStyle = getStatusStyle();
 
   return (
     <div className="vh-90 d-flex flex-column" style={{ marginTop: '60px' }}>
@@ -164,7 +221,21 @@ const BatchList = ({ status }) => {
           </div>
         </Card.Header>
         <Card.Body className="p-0">
-          {filteredBatches.length === 0 ? (
+          {error && (
+            <Alert variant="danger" className="m-3">
+              <div className="d-flex align-items-center">
+                <FaExclamationTriangle className="me-2" />
+                <span>{error}</span>
+              </div>
+              <div className="mt-2">
+                <Button size="sm" variant="outline-danger" onClick={() => fetchBatches()}>
+                  Retry
+                </Button>
+              </div>
+            </Alert>
+          )}
+          
+          {!error && filteredBatches.length === 0 ? (
             <div className="d-flex justify-content-center align-items-center h-100">
               <div className="text-muted">
                 {searchTerm 
@@ -180,8 +251,11 @@ const BatchList = ({ status }) => {
                     <th className="px-3" style={{color: '#294a70'}}>Batch No.</th>
                     <th className="px-3" style={{color: '#294a70'}}>School Name</th>
                     <th className="px-3" style={{color: '#294a70'}}>Send Date</th>
-                    {status === "Received" && (
+                    {status.toLowerCase() === "received" && (
                       <th className="px-3" style={{color: '#294a70'}}>Received Date</th>
+                    )}
+                    {status.toLowerCase() === "cancelled" && (
+                      <th className="px-3" style={{color: '#294a70'}}>Cancelled Date</th>
                     )}
                     <th className="px-3" style={{color: '#294a70'}}>Status</th>
                     <th className="px-3" style={{color: '#294a70'}}>Actions</th>
@@ -192,13 +266,32 @@ const BatchList = ({ status }) => {
                     <tr key={batch.batch_id}>
                       <td className="px-3">{batch.batch_number}</td>
                       <td className="px-3">{batch.school_name}</td>
-                      <td className="px-3">{new Date(batch.send_date).toLocaleDateString()}</td>
-                      {status === "Received" && (
+                      <td className="px-3">
+                        {batch.send_date ? new Date(batch.send_date).toLocaleDateString() : '-'}
+                      </td>
+                      {status.toLowerCase() === "received" && (
                         <td className="px-3">
                           {batch.received_date ? new Date(batch.received_date).toLocaleDateString() : '-'}
                         </td>
                       )}
-                      <td className="px-3">{batch.status}</td>
+                      {status.toLowerCase() === "cancelled" && (
+                        <td className="px-3">
+                          {batch.cancelled_date ? new Date(batch.cancelled_date).toLocaleDateString() : '-'}
+                        </td>
+                      )}
+                      <td className="px-3">
+                        <span 
+                          className="badge" 
+                          style={{
+                            backgroundColor: statusStyle.bgColor, 
+                            color: statusStyle.color,
+                            padding: "0.4em 0.6em",
+                            fontSize: "0.85rem"
+                          }}
+                        >
+                          {batch.status || "Unknown"}
+                        </span>
+                      </td>
                       <td className="px-3">
                         <div className="d-flex gap-2 flex-wrap">
                           <Button
@@ -208,7 +301,7 @@ const BatchList = ({ status }) => {
                           >
                             View Devices
                           </Button>
-                          {status === "Pending" && (
+                          {status.toLowerCase() === "pending" && (
                             <Button
                               size="sm"
                               variant="success"
