@@ -261,326 +261,656 @@ import Swal from "sweetalert2";
   };
 
   return (
-    <Container className="mt-5">
-      <form onSubmit={handleSubmit}>
-        <Card
-          className="m-auto"
-          style={{
-            width: "60%",
-            border: "none",
-            boxShadow: "2px 2px 10px 2px rgba(0, 0, 0, 0.15)",
-            height: "80vh",
-            overflowY: "auto"
-          }}
-        >
+    <>
+      {/* Mobile view (no container) */}
+      <div className="d-block d-md-none mt-4 px-2">
+        <form onSubmit={handleSubmit}>
           {error && <Alert variant="danger">{error}</Alert>}
           {message && <Alert variant="success">{message}</Alert>}
+          
+          <div className="mb-4">
+            <h3>DepEd Account Request</h3>
+          </div>
   
-          <Card.Body>
-            <div className="mb-4">
-              <h3>DepEd Account Request</h3>
-            </div>
+          {/* Request Type dropdown */}
+          <Form.Group as={Row} className="mb-3">
+          <Form.Label column xs={12} sm={12} md={3} lg={2}>Request Type</Form.Label>
+          <Col xs={12} sm={12} md={9} lg={10}>
+              <Form.Select
+                value={formData.requestType}
+                name="requestType"
+                onChange={handleRequestTypeChange}
+                required
+              >
+                <option value="">-- Select Request Type --</option>
+                <option value="new">Request New Account</option>
+                <option value="reset">Reset Existing Account</option>
+              </Form.Select>
+            </Col>
+          </Form.Group>
   
-            {/* Request Type dropdown */}
+          {/* Conditional form fields based on request type */}
+          {formData.requestType && (
             <Form.Group as={Row} className="mb-3">
-              <Form.Label column sm="2">Request Type</Form.Label>
-              <Col sm="10">
+              <Form.Label column xs={12}>Account Type</Form.Label>
+              <Col xs={12}>
                 <Form.Select
-                  value={formData.requestType}
-                  name="requestType"
-                  onChange={handleRequestTypeChange}
+                  value={formData.selectedType}
+                  name="selectedType"
+                  onChange={handleTypeChange}
                   required
                 >
-                  <option value="">-- Select Request Type --</option>
-                  <option value="new">Request New Account</option>
-                  <option value="reset">Reset Existing Account</option>
+                  <option value="">-- Select Account Type --</option>
+                  <option value="gmail">DepEd Gmail Account</option>
+                  <option value="office365">Office 365 Account</option>
                 </Form.Select>
               </Col>
             </Form.Group>
+          )}
   
-            {/* Conditional form fields based on request type */}
-            {formData.requestType && (
+          {/* Common fields for both request types */}
+          {formData.selectedType && (
+            <>
               <Form.Group as={Row} className="mb-3">
-                <Form.Label column sm="2">Account Type</Form.Label>
-                <Col sm="10">
+                <Form.Label column xs={12}>Name</Form.Label>
+                <Col xs={12}>
+                  <Row>
+                    <Col xs={12} className="mb-2">
+                      <FloatingLabel label="Surname">
+                        <Form.Control
+                          type="text"
+                          name="surname"
+                          value={formData.surname || ''}
+                          onChange={handleChange}
+                          placeholder="Surname"
+                          required
+                        />
+                      </FloatingLabel>
+                    </Col>
+                    <Col xs={12} className="mb-2">
+                      <FloatingLabel label="First Name">
+                        <Form.Control
+                          type="text"
+                          name="firstName"
+                          value={formData.firstName || ''}
+                          onChange={handleChange}
+                          placeholder="First Name"
+                          required
+                        />
+                      </FloatingLabel>
+                    </Col>
+                    <Col xs={12}>
+                      <FloatingLabel label="Middle Name">
+                        <Form.Control
+                          type="text"
+                          name="middleName"
+                          value={formData.middleName || ''}
+                          onChange={handleChange}
+                          placeholder="Middle Name"
+                        />
+                      </FloatingLabel>
+                    </Col>
+                  </Row>
+                </Col>
+              </Form.Group>
+  
+              <Form.Group as={Row} className="mb-3">
+                <Form.Label column xs={12}>School</Form.Label>
+                <Col xs={12}>
                   <Form.Select
-                    value={formData.selectedType}
-                    name="selectedType"
-                    onChange={handleTypeChange}
+                    name="school"
+                    value={formData.school}
+                    onChange={handleSchoolChange}
                     required
                   >
-                    <option value="">-- Select Account Type --</option>
-                    <option value="gmail">DepEd Gmail Account</option>
-                    <option value="office365">Office 365 Account</option>
+                    <option value="">-- Select School --</option>
+                    {schools.map((school) => (
+                      <option key={school.schoolCode} value={school.school}>
+                        {school.school}
+                      </option>
+                    ))}
                   </Form.Select>
                 </Col>
               </Form.Group>
-            )}
   
-            {/* Common fields for both request types */}
-            {formData.selectedType && (
-              <>
-                <Form.Group as={Row} className="mb-3">
-                  <Form.Label column sm="2">Name</Form.Label>
-                  <Col sm="10">
-                    <Row>
-                      <Col md={4}>
-                        <FloatingLabel label="Surname">
-                          <Form.Control
-                            type="text"
-                            name="surname"
-                            value={formData.surname || ''}
-                            onChange={handleChange}
-                            placeholder="Surname"
-                            required
-                          />
-                        </FloatingLabel>
-                      </Col>
-                      <Col md={4}>
-                        <FloatingLabel label="First Name">
-                          <Form.Control
-                            type="text"
-                            name="firstName"
-                            value={formData.firstName || ''}
-                            onChange={handleChange}
-                            placeholder="First Name"
-                            required
-                          />
-                        </FloatingLabel>
-                      </Col>
-                      <Col md={4}>
-                        <FloatingLabel label="Middle Name">
-                          <Form.Control
-                            type="text"
-                            name="middleName"
-                            value={formData.middleName || ''}
-                            onChange={handleChange}
-                            placeholder="Middle Name"
-                          />
-                        </FloatingLabel>
-                      </Col>
-                    </Row>
-                  </Col>
-                </Form.Group>
-  
-                <Form.Group as={Row} className="mb-3">
-                  <Form.Label column sm="2">School</Form.Label>
-                  <Col sm="10">
-                    <Form.Select
-                      name="school"
-                      value={formData.school}
-                      onChange={handleSchoolChange}
+              <Form.Group as={Row} className="mb-3">
+                <Form.Label column xs={12}>School ID</Form.Label>
+                <Col xs={12}>
+                  <FloatingLabel label="School ID">
+                    <Form.Control
+                      type="text"
+                      name="schoolID"
+                      value={formData.schoolID}
+                      placeholder="School ID"
+                      readOnly
                       required
-                    >
-                      <option value="">-- Select School --</option>
-                      {schools.map((school) => (
-                        <option key={school.schoolCode} value={school.school}>
-                          {school.school}
-                        </option>
-                      ))}
-                    </Form.Select>
-                  </Col>
-                </Form.Group>
+                    />
+                  </FloatingLabel>
+                </Col>
+              </Form.Group>
   
-                <Form.Group as={Row} className="mb-3">
-                  <Form.Label column sm="2">School ID</Form.Label>
-                  <Col sm="10">
-                    <FloatingLabel label="School ID">
-                      <Form.Control
-                        type="text"
-                        name="schoolID"
-                        value={formData.schoolID}
-                        placeholder="School ID"
-                        readOnly
-                        required
-                      />
-                    </FloatingLabel>
-                  </Col>
-                </Form.Group>
-  
-                {/* Fields specific to new account request */}
-                {formData.requestType === "new" && (
-                  <>
-                    <Form.Group as={Row} className="mb-3">
-                      <Form.Label column sm="2">Designation</Form.Label>
-                      <Col sm="10">
-                        <FloatingLabel label="Designation">
-                          <Form.Control
-                            type="text"
-                            name="designation"
-                            value={formData.designation}
-                            onChange={handleChange}
-                            placeholder="Designation"
-                            required
-                          />
-                        </FloatingLabel>
-                      </Col>
-                    </Form.Group>
-  
-                    <Form.Group as={Row} className="mb-3">
-                      <Form.Label column sm="2">Personal Gmail</Form.Label>
-                      <Col sm="10">
-                        <FloatingLabel label="Personal Gmail Account">
-                          <Form.Control
-                            type="email"
-                            name="personalGmail"
-                            value={formData.personalGmail}
-                            onChange={handleChange}
-                            placeholder="name@gmail.com"
-                            required
-                          />
-                        </FloatingLabel>
-                      </Col>
-                    </Form.Group>
-  
-                    <Form.Group as={Row} className="mb-3">
-                      <Form.Label column sm="2">Proof of Identity</Form.Label>
-                      <Col sm="10">
-                        <Form.Control
-                          type="file"
-                          name="proofOfIdentity"
-                          onChange={handleFileChange}
-                          accept=".jpg,.jpeg,.png,.pdf"
-                          required
-                        />
-                        {formData.attachmentPreviews.map((file, index) => (
-                          file.type === 'proofOfIdentity' && (
-                            <div key={index} className="d-flex align-items-center mt-2">
-                              {file.url && (
-                                <img
-                                  src={file.url}
-                                  alt={file.name}
-                                  style={{ width: "50px", height: "50px", marginRight: "10px" }}
-                                />
-                              )}
-                              <div className="d-flex justify-content-between pe-2" style={{ width: "100%" }}>
-                                <span>{file.name}</span>
-                                <button
-                                  type="button"
-                                  className="btn text-danger"
-                                  onClick={() => handleRemoveAttachment('proofOfIdentity')}
-                                >
-                                  <FaRegTrashAlt />
-                                </button>
-                              </div>
-                            </div>
-                          )
-                        ))}
-                      </Col>
-                    </Form.Group>
-  
-                    <Form.Group as={Row} className="mb-3">
-                      <Form.Label column sm="2">PRC ID</Form.Label>
-                      <Col sm="10">
-                        <Form.Control
-                          type="file"
-                          name="prcID"
-                          onChange={handleFileChange}
-                          accept=".jpg,.jpeg,.png,.pdf"
-                          required
-                        />
-                        {formData.attachmentPreviews.map((file, index) => (
-                          file.type === 'prcID' && (
-                            <div key={index} className="d-flex align-items-center mt-2">
-                              {file.url && (
-                                <img
-                                  src={file.url}
-                                  alt={file.name}
-                                  style={{ width: "50px", height: "50px", marginRight: "10px" }}
-                                />
-                              )}
-                              <div className="d-flex justify-content-between pe-2" style={{ width: "100%" }}>
-                                <span>{file.name}</span>
-                                <button
-                                  type="button"
-                                  className="btn text-danger"
-                                  onClick={() => handleRemoveAttachment('prcID')}
-                                >
-                                  <FaRegTrashAlt />
-                                </button>
-                              </div>
-                            </div>
-                          )
-                        ))}
-                      </Col>
-                    </Form.Group>
-  
-                    <Form.Group as={Row} className="mb-3">
-                      <Form.Label column sm="2">Endorsement Letter</Form.Label>
-                      <Col sm="10">
-                        <Form.Control
-                          type="file"
-                          name="endorsementLetter"
-                          onChange={handleFileChange}
-                          accept=".jpg,.jpeg,.png,.pdf"
-                          required
-                        />
-                        {formData.attachmentPreviews.map((file, index) => (
-                          file.type === 'endorsementLetter' && (
-                            <div key={index} className="d-flex align-items-center mt-2">
-                              {file.url && (
-                                <img
-                                  src={file.url}
-                                  alt={file.name}
-                                  style={{ width: "50px", height: "50px", marginRight: "10px" }}
-                                />
-                              )}
-                              <div className="d-flex justify-content-between pe-2" style={{ width: "100%" }}>
-                                <span>{file.name}</span>
-                                <button
-                                  type="button"
-                                  className="btn text-danger"
-                                  onClick={() => handleRemoveAttachment('endorsementLetter')}
-                                >
-                                  <FaRegTrashAlt />
-                                </button>
-                              </div>
-                            </div>
-                          )
-                        ))}
-                      </Col>
-                    </Form.Group>
-                  </>
-                )}
-  
-                {/* Fields specific to reset account request */}
-                {formData.requestType === "reset" && (
+              {/* Fields specific to new account request */}
+              {formData.requestType === "new" && (
+                <>
                   <Form.Group as={Row} className="mb-3">
-                    <Form.Label column sm="2">Employee Number</Form.Label>
-                    <Col sm="10">
-                      <FloatingLabel label="Employee Number">
+                    <Form.Label column xs={12}>Designation</Form.Label>
+                    <Col xs={12}>
+                      <FloatingLabel label="Designation">
                         <Form.Control
                           type="text"
-                          name="employeeNumber"
-                          value={formData.employeeNumber}
+                          name="designation"
+                          value={formData.designation}
                           onChange={handleChange}
-                          placeholder="Employee Number"
+                          placeholder="Designation"
                           required
                         />
                       </FloatingLabel>
                     </Col>
                   </Form.Group>
-                )}
-              </>
-            )}
-          </Card.Body>
   
-          <Card.Footer
-            className="d-flex justify-content-center mb-3"
-            style={{ backgroundColor: "transparent", border: "none" }}
-          >
+                  <Form.Group as={Row} className="mb-3">
+                    <Form.Label column xs={12}>Personal Gmail</Form.Label>
+                    <Col xs={12}>
+                      <FloatingLabel label="Personal Gmail Account">
+                        <Form.Control
+                          type="email"
+                          name="personalGmail"
+                          value={formData.personalGmail}
+                          onChange={handleChange}
+                          placeholder="name@gmail.com"
+                          required
+                        />
+                      </FloatingLabel>
+                    </Col>
+                  </Form.Group>
+  
+                  <Form.Group as={Row} className="mb-3">
+                    <Form.Label column xs={12}>Proof of Identity</Form.Label>
+                    <Col xs={12}>
+                      <Form.Control
+                        type="file"
+                        name="proofOfIdentity"
+                        onChange={handleFileChange}
+                        accept=".jpg,.jpeg,.png,.pdf"
+                        required
+                      />
+                      {formData.attachmentPreviews.map((file, index) => (
+                        file.type === 'proofOfIdentity' && (
+                          <div key={index} className="d-flex align-items-center mt-2">
+                            {file.url && (
+                              <img
+                                src={file.url}
+                                alt={file.name}
+                                style={{ width: "50px", height: "50px", marginRight: "10px" }}
+                              />
+                            )}
+                            <div className="d-flex justify-content-between pe-2" style={{ width: "100%" }}>
+                              <span>{file.name}</span>
+                              <button
+                                type="button"
+                                className="btn text-danger"
+                                onClick={() => handleRemoveAttachment('proofOfIdentity')}
+                              >
+                                <FaRegTrashAlt />
+                              </button>
+                            </div>
+                          </div>
+                        )
+                      ))}
+                    </Col>
+                  </Form.Group>
+  
+                  <Form.Group as={Row} className="mb-3">
+                    <Form.Label column xs={12}>PRC ID</Form.Label>
+                    <Col xs={12}>
+                      <Form.Control
+                        type="file"
+                        name="prcID"
+                        onChange={handleFileChange}
+                        accept=".jpg,.jpeg,.png,.pdf"
+                        required
+                      />
+                      {formData.attachmentPreviews.map((file, index) => (
+                        file.type === 'prcID' && (
+                          <div key={index} className="d-flex align-items-center mt-2">
+                            {file.url && (
+                              <img
+                                src={file.url}
+                                alt={file.name}
+                                style={{ width: "50px", height: "50px", marginRight: "10px" }}
+                              />
+                            )}
+                            <div className="d-flex justify-content-between pe-2" style={{ width: "100%" }}>
+                              <span>{file.name}</span>
+                              <button
+                                type="button"
+                                className="btn text-danger"
+                                onClick={() => handleRemoveAttachment('prcID')}
+                              >
+                                <FaRegTrashAlt />
+                              </button>
+                            </div>
+                          </div>
+                        )
+                      ))}
+                    </Col>
+                  </Form.Group>
+  
+                  <Form.Group as={Row} className="mb-3">
+                    <Form.Label column xs={12}>Endorsement Letter</Form.Label>
+                    <Col xs={12}>
+                      <Form.Control
+                        type="file"
+                        name="endorsementLetter"
+                        onChange={handleFileChange}
+                        accept=".jpg,.jpeg,.png,.pdf"
+                        required
+                      />
+                      {formData.attachmentPreviews.map((file, index) => (
+                        file.type === 'endorsementLetter' && (
+                          <div key={index} className="d-flex align-items-center mt-2">
+                            {file.url && (
+                              <img
+                                src={file.url}
+                                alt={file.name}
+                                style={{ width: "50px", height: "50px", marginRight: "10px" }}
+                              />
+                            )}
+                            <div className="d-flex justify-content-between pe-2" style={{ width: "100%" }}>
+                              <span>{file.name}</span>
+                              <button
+                                type="button"
+                                className="btn text-danger"
+                                onClick={() => handleRemoveAttachment('endorsementLetter')}
+                              >
+                                <FaRegTrashAlt />
+                              </button>
+                            </div>
+                          </div>
+                        )
+                      ))}
+                    </Col>
+                  </Form.Group>
+                </>
+              )}
+  
+              {/* Fields specific to reset account request */}
+              {formData.requestType === "reset" && (
+                <Form.Group as={Row} className="mb-3">
+                  <Form.Label column xs={12}>Employee Number</Form.Label>
+                  <Col xs={12}>
+                    <FloatingLabel label="Employee Number">
+                      <Form.Control
+                        type="text"
+                        name="employeeNumber"
+                        value={formData.employeeNumber}
+                        onChange={handleChange}
+                        placeholder="Employee Number"
+                        required
+                      />
+                    </FloatingLabel>
+                  </Col>
+                </Form.Group>
+              )}
+            </>
+          )}
+  
+          <div className="d-flex justify-content-center mb-4 mt-4">
             <Button
               variant="dark"
               type="submit"
-              style={{ width: "25%" }}
+              className="w-100 py-2"
               disabled={isSubmitting || !formData.selectedType}
             >
               {isSubmitting ? "Submitting..." : "Submit"}
             </Button>
-          </Card.Footer>
-        </Card>
-      </form>
-    </Container>
+          </div>
+        </form>
+      </div>
+  
+      {/* Tablet and Desktop view (with container) */}
+      <Container className="mt-5 d-none d-md-block">
+        <form onSubmit={handleSubmit}>
+          <Card
+            className="m-auto"
+            style={{
+              width: "70%",
+              border: "none",
+              boxShadow: "2px 2px 10px 2px rgba(0, 0, 0, 0.15)",
+              height: "90vh",
+              overflowY: "auto"
+            }}
+          >
+            {error && <Alert variant="danger">{error}</Alert>}
+            {message && <Alert variant="success">{message}</Alert>}
+  
+            <Card.Body>
+              <div className="mb-4" >
+                <h3 className= "fs-1">DepEd Account Request</h3>
+              </div>
+  
+              {/* Request Type dropdown */}
+              <Form.Group as={Row} className="mb-3">
+              <Form.Label column xs={12} sm={12} md={3} lg={2}>Request Type</Form.Label>
+              <Col xs={12} sm={12} md={9} lg={10}>
+                  <Form.Select
+                    value={formData.requestType}
+                    name="requestType"
+                    onChange={handleRequestTypeChange}
+                    required
+                  >
+                    <option value="">-- Select Request Type --</option>
+                    <option value="new">Request New Account</option>
+                    <option value="reset">Reset Existing Account</option>
+                  </Form.Select>
+                </Col>
+              </Form.Group>
+  
+              {/* Conditional form fields based on request type */}
+              {formData.requestType && (
+                <Form.Group as={Row} className="mb-3">
+                  <Form.Label column xs={12} sm={12} md={3} lg={2}>Account Type</Form.Label>
+                  <Col xs={12} sm={12} md={9} lg={10}>
+                    <Form.Select
+                      value={formData.selectedType}
+                      name="selectedType"
+                      onChange={handleTypeChange}
+                      required
+                    >
+                      <option value="">-- Select Account Type --</option>
+                      <option value="gmail">DepEd Gmail Account</option>
+                      <option value="office365">Office 365 Account</option>
+                    </Form.Select>
+                  </Col>
+                </Form.Group>
+              )}
+  
+              {/* Common fields for both request types */}
+              {formData.selectedType && (
+                <>
+                  <Form.Group as={Row} className="mb-3">
+                  <Form.Label column xs={12} sm={12} md={3} lg={2}>Name</Form.Label>
+                  <Col xs={12} sm={12} md={9} lg={10}>
+                      <Row>
+                        <Col md={4}>
+                          <FloatingLabel label="Surname">
+                            <Form.Control
+                              type="text"
+                              name="surname"
+                              value={formData.surname || ''}
+                              onChange={handleChange}
+                              placeholder="Surname"
+                              required
+                            />
+                          </FloatingLabel>
+                        </Col>
+                        <Col md={4}>
+                          <FloatingLabel label="First Name">
+                            <Form.Control
+                              type="text"
+                              name="firstName"
+                              value={formData.firstName || ''}
+                              onChange={handleChange}
+                              placeholder="First Name"
+                              required
+                            />
+                          </FloatingLabel>
+                        </Col>
+                        <Col md={4}>
+                          <FloatingLabel label="Middle Name">
+                            <Form.Control
+                              type="text"
+                              name="middleName"
+                              value={formData.middleName || ''}
+                              onChange={handleChange}
+                              placeholder="Middle Name"
+                            />
+                          </FloatingLabel>
+                        </Col>
+                      </Row>
+                    </Col>
+                  </Form.Group>
+  
+                  <Form.Group as={Row} className="mb-3">
+                  <Form.Label column xs={12} sm={12} md={3} lg={2}>School</Form.Label>
+                  <Col xs={12} sm={12} md={9} lg={10}>
+                      <Form.Select
+                        name="school"
+                        value={formData.school}
+                        onChange={handleSchoolChange}
+                        required
+                      >
+                        <option value="">-- Select School --</option>
+                        {schools.map((school) => (
+                          <option key={school.schoolCode} value={school.school}>
+                            {school.school}
+                          </option>
+                        ))}
+                      </Form.Select>
+                    </Col>
+                  </Form.Group>
+  
+                  <Form.Group as={Row} className="mb-3">
+                  <Form.Label column xs={12} sm={12} md={3} lg={2}>School ID</Form.Label>
+                  <Col xs={12} sm={12} md={9} lg={10}>
+                      <FloatingLabel label="School ID">
+                        <Form.Control
+                          type="text"
+                          name="schoolID"
+                          value={formData.schoolID}
+                          placeholder="School ID"
+                          readOnly
+                          required
+                        />
+                      </FloatingLabel>
+                    </Col>
+                  </Form.Group>
+  
+                  {/* Fields specific to new account request */}
+                  {formData.requestType === "new" && (
+                    <>
+                      <Form.Group as={Row} className="mb-3">
+                      <Form.Label column xs={12} sm={12} md={3} lg={2}>Designation</Form.Label>
+                      <Col xs={12} sm={12} md={9} lg={10}>
+                          <FloatingLabel label="Designation">
+                            <Form.Control
+                              type="text"
+                              name="designation"
+                              value={formData.designation}
+                              onChange={handleChange}
+                              placeholder="Designation"
+                              required
+                            />
+                          </FloatingLabel>
+                        </Col>
+                      </Form.Group>
+  
+                      <Form.Group as={Row} className="mb-3">
+                      <Form.Label column xs={12} sm={12} md={3} lg={2}>Personal Gmail</Form.Label>
+                      <Col xs={12} sm={12} md={9} lg={10}>
+                          <FloatingLabel label="Personal Gmail Account">
+                            <Form.Control
+                              type="email"
+                              name="personalGmail"
+                              value={formData.personalGmail}
+                              onChange={handleChange}
+                              placeholder="name@gmail.com"
+                              required
+                            />
+                          </FloatingLabel>
+                        </Col>
+                      </Form.Group>
+  
+                      <Form.Group as={Row} className="mb-3">
+                      <Form.Label column xs={12} sm={12} md={3} lg={2}>Proof of Identity</Form.Label>
+                      <Col xs={12} sm={12} md={9} lg={10}>
+                          <Form.Control
+                            type="file"
+                            name="proofOfIdentity"
+                            onChange={handleFileChange}
+                            accept=".jpg,.jpeg,.png,.pdf"
+                            required
+                          />
+                          {formData.attachmentPreviews.map((file, index) => (
+                            file.type === 'proofOfIdentity' && (
+                              <div key={index} className="d-flex align-items-center mt-2">
+                                {file.url && (
+                                  <img
+                                    src={file.url}
+                                    alt={file.name}
+                                    style={{ width: "50px", height: "50px", marginRight: "10px" }}
+                                  />
+                                )}
+                                <div className="d-flex justify-content-between pe-2" style={{ width: "100%" }}>
+                                  <span>{file.name}</span>
+                                  <button
+                                    type="button"
+                                    className="btn text-danger"
+                                    onClick={() => handleRemoveAttachment('proofOfIdentity')}
+                                  >
+                                    <FaRegTrashAlt />
+                                  </button>
+                                </div>
+                              </div>
+                            )
+                          ))}
+                        </Col>
+                      </Form.Group>
+  
+                      <Form.Group as={Row} className="mb-3">
+                      <Form.Label column xs={12} sm={12} md={3} lg={2}>PRC ID</Form.Label>
+                      <Col xs={12} sm={12} md={9} lg={10}>
+                          <Form.Control
+                            type="file"
+                            name="prcID"
+                            onChange={handleFileChange}
+                            accept=".jpg,.jpeg,.png,.pdf"
+                            required
+                          />
+                          {formData.attachmentPreviews.map((file, index) => (
+                            file.type === 'prcID' && (
+                              <div key={index} className="d-flex align-items-center mt-2">
+                                {file.url && (
+                                  <img
+                                    src={file.url}
+                                    alt={file.name}
+                                    style={{ width: "50px", height: "50px", marginRight: "10px" }}
+                                  />
+                                )}
+                                <div className="d-flex justify-content-between pe-2" style={{ width: "100%" }}>
+                                  <span>{file.name}</span>
+                                  <button
+                                    type="button"
+                                    className="btn text-danger"
+                                    onClick={() => handleRemoveAttachment('prcID')}
+                                  >
+                                    <FaRegTrashAlt />
+                                  </button>
+                                </div>
+                              </div>
+                            )
+                          ))}
+                        </Col>
+                      </Form.Group>
+  
+                      <Form.Group as={Row} className="mb-3">
+                      <Form.Label column xs={12} sm={12} md={3} lg={2}>Endorsement Letter</Form.Label>
+                      <Col xs={12} sm={12} md={9} lg={10}>
+                          <Form.Control
+                            type="file"
+                            name="endorsementLetter"
+                            onChange={handleFileChange}
+                            accept=".jpg,.jpeg,.png,.pdf"
+                            required
+                          />
+                          {formData.attachmentPreviews.map((file, index) => (
+                            file.type === 'endorsementLetter' && (
+                              <div key={index} className="d-flex align-items-center mt-2">
+                                {file.url && (
+                                  <img
+                                    src={file.url}
+                                    alt={file.name}
+                                    style={{ width: "50px", height: "50px", marginRight: "10px" }}
+                                  />
+                                )}
+                                <div className="d-flex justify-content-between pe-2" style={{ width: "100%" }}>
+                                  <span>{file.name}</span>
+                                  <button
+                                    type="button"
+                                    className="btn text-danger"
+                                    onClick={() => handleRemoveAttachment('endorsementLetter')}
+                                  >
+                                    <FaRegTrashAlt />
+                                  </button>
+                                </div>
+                              </div>
+                            )
+                          ))}
+                        </Col>
+                      </Form.Group>
+                    </>
+                  )}
+  
+                  {/* Fields specific to reset account request */}
+                  {formData.requestType === "reset" && (
+                    <Form.Group as={Row} className="mb-3">
+                      <Form.Label column xs={12} sm={12} md={3} lg={2}>Employee Number</Form.Label>
+                      <Col xs={12} sm={12} md={9} lg={10}>
+                        <FloatingLabel label="Employee Number">
+                          <Form.Control
+                            type="text"
+                            name="employeeNumber"
+                            value={formData.employeeNumber}
+                            onChange={handleChange}
+                            placeholder="Employee Number"
+                            required
+                          />
+                        </FloatingLabel>
+                      </Col>
+                    </Form.Group>
+                  )}
+                </>
+              )}
+            </Card.Body>
+  
+            <Card.Footer
+              className="d-flex justify-content-center mb-3"
+              style={{ backgroundColor: "transparent", border: "none" }}
+            >
+              <Button
+                variant="dark"
+                type="submit"
+                style={{ width: "25%" }}
+                disabled={isSubmitting || !formData.selectedType}
+              >
+                {isSubmitting ? "Submitting..." : "Submit"}
+              </Button>
+            </Card.Footer>
+          </Card>
+        </form>
+      </Container>
+  
+      {/* Modal */}
+      <Modal
+        show={showSuccessModal}
+        onHide={handleCloseModal}
+        backdrop="static"
+        keyboard={false}
+        centered
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>Success!</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <p>{submittedRequestType === 'new' ? 'New Account request' : 'Reset Account request'} has been submitted successfully!</p>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="dark" onClick={handleCloseModal}>
+            Done
+          </Button>
+        </Modal.Footer>
+      </Modal>
+    </>
   );
 };
 

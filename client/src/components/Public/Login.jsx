@@ -12,9 +12,9 @@ import { GoLock } from "react-icons/go";
 import { IoEyeOutline } from "react-icons/io5";
 import { FaRegEyeSlash } from "react-icons/fa";
 import { useAuth } from "../Context/AuthContext";
-import Modal from 'react-bootstrap/Modal';
+import Modal from "react-bootstrap/Modal";
 import { Link } from "react-router-dom";
-import Swal from 'sweetalert2'
+import Swal from "sweetalert2";
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -68,16 +68,17 @@ const Login = () => {
           text: "Welcome Back!",
           timer: 1000,
           showConfirmButton: false,
-        }).then(async () => {  // Make the callback async
+        }).then(async () => {
+          // Make the callback async
           const data = await response.json();
           localStorage.setItem("token", data.token);
-      
+
           const decodedUser = jwtDecode(data.token);
           localStorage.setItem("user", JSON.stringify(decodedUser));
-      
+
           // Correct usage of data here
           login(data.token);
-      
+
           if (decodedUser.role === "Admin") {
             navigate("/admindashboard");
           } else {
@@ -87,18 +88,17 @@ const Login = () => {
       } else {
         const errorData = await response.json();
         setErrorMessage(errorData.message);
-      
+
         if (errorData.retryAfter) {
           setRetryAfter(errorData.retryAfter);
         }
-      
+
         if (errorData.remainingAttempts !== undefined) {
           setRemainingAttempts(errorData.remainingAttempts);
         }
-      
+
         setShowModal(true);
       }
-      
     } catch (error) {
       console.error("Login error:", error);
       setShowModal(true);
@@ -107,7 +107,6 @@ const Login = () => {
 
   return (
     <div className="schoolLoginMain" id="school">
-      
       <Card className="schoolLogin mx-auto">
         <Card.Header className="schoolHeader d-flex justify-content-center align-items-center">
           <div className="text-center">
@@ -147,36 +146,45 @@ const Login = () => {
                 className="schoolPassword"
                 required
               />
-              
+
               <InputGroup.Text
                 className="schoolIcon m-0"
                 onClick={togglePasswordVisibility}
               >
-                
                 {showPassword ? (
                   <IoEyeOutline className="fs-5" />
                 ) : (
                   <FaRegEyeSlash className="fs-5" />
                 )}
-            
               </InputGroup.Text>
             </InputGroup>
-            
           </Form>
         </Card.Body>
 
-        <Link to="/request-deped-account" className="mt-3 text-decoration-none">Request New DepEd Account</Link>
-
-        <Card.Footer className="schoolBtn d-flex justify-content-center mb-3">
-          
-          <Button
-            variant="dark"
-            className="schoolLoginBtn text-white"
-            onClick={handleLogin}
-          >
-            Login
-          </Button>
-          
+        <Card.Footer className="schoolBtn">
+          <div className="d-flex justify-content-center mb-3">
+            <Button
+              variant="dark"
+              className="schoolLoginBtn text-white"
+              onClick={handleLogin}
+              style={{ border: "none" }}
+            >
+              Login
+            </Button>
+          </div>
+          <div>
+            <Link
+              to="/request-deped-account"
+              className="mt-3 text-decoration-none"
+            >
+              Request New DepEd Account
+            </Link>
+          </div>
+          <div>
+            <Link to="/checktransaction" className="mt-3 text-decoration-none">
+              Check Transaction
+            </Link>
+          </div>
         </Card.Footer>
       </Card>
 
@@ -196,9 +204,11 @@ const Login = () => {
           </Modal.Header>
           <Modal.Body>
             <p>{errorMessage}</p>
-            {remainingAttempts !== null && remainingAttempts > 0 && retryAfter === null && (
-              <p>You have {remainingAttempts} attempt(s) left.</p>
-            )}
+            {remainingAttempts !== null &&
+              remainingAttempts > 0 &&
+              retryAfter === null && (
+                <p>You have {remainingAttempts} attempt(s) left.</p>
+              )}
             {retryAfter !== null && countdown > 0 && (
               <p>
                 You can try again in <strong>{countdown}</strong> seconds.

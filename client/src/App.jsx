@@ -29,6 +29,7 @@ import Forbidden from "./components/Public/Forbidden";
 import NotFound from "./components/Public/NotFound";
 import Login from "./components/Public/Login";
 import RequestDepedAccount from "./components/Public/RequestDepedAccount";
+import CheckTransaction from "./components/Public/CheckTransaction";
 
 function App() {
   return (
@@ -144,6 +145,10 @@ function App() {
           <Route
             path="/request-deped-account"
             element={<RequestDepedAccount />}
+          />
+          <Route
+            path="/checktransaction"
+            element={<CheckTransaction />}
           />
           <Route path="*" element={<NotFound />} />
         </Routes>
