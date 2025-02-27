@@ -3,6 +3,7 @@ import { Form, Button, Container, Card, Row, Col, Alert, FloatingLabel } from "r
 import { FaRegTrashAlt } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { Modal } from 'react-bootstrap';
+import Swal from "sweetalert2";
 
   const RequestDepedAccount = () => {
   const navigate = useNavigate();
@@ -147,94 +148,89 @@ import { Modal } from 'react-bootstrap';
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
-    // setError("");
     setMessage("");
-
-    // Destructure ALL form data fields to ensure you are using the correct one
+  
     const { requestType, selectedType, surname, firstName, middleName, school, schoolID, employeeNumber, designation, personalGmail, proofOfIdentity, prcID, endorsementLetter } = formData;
-
-    // Validation for both request types
+  
     if (!requestType || !selectedType || !surname || !firstName || !school || !schoolID) {
       setError("Please fill in all required fields");
       setIsSubmitting(false);
       return;
     }
-
+  
     let endpoint = "";
     let options = {
-        method: "POST",
+      method: "POST",
     };
-
+  
     let body = null;
-
-    // Additional validation for new account request
+  
     if (requestType === "new") {
-        // Determine the endpoint based on request type
-        endpoint = "http://localhost:8080/request-deped-account";
-        body = new FormData();
-
-        body.append("selectedType", selectedType);
-        body.append("surname", surname);
-        body.append("firstName", firstName);
-        body.append("middleName", middleName);
-        body.append("designation", designation);
-        body.append("school", school);
-        body.append("schoolID", schoolID);
-        body.append("personalGmail", personalGmail);
-        body.append("proofOfIdentity", proofOfIdentity);
-        body.append("prcID", prcID);
-        body.append("endorsementLetter", endorsementLetter);
-
-        options.body = body;
-
-        // Add Gmail validation
-        if (!isValidGmail(personalGmail)) {
-            setError("Please provide a valid Gmail address (must end with @gmail.com)");
-            setIsSubmitting(false);
-            return;
-        }
-        // Additional validation for reset account request
+      endpoint = "http://localhost:8080/request-deped-account";
+      body = new FormData();
+  
+      body.append("selectedType", selectedType);
+      body.append("surname", surname);
+      body.append("firstName", firstName);
+      body.append("middleName", middleName);
+      body.append("designation", designation);
+      body.append("school", school);
+      body.append("schoolID", schoolID);
+      body.append("personalGmail", personalGmail);
+      body.append("proofOfIdentity", proofOfIdentity);
+      body.append("prcID", prcID);
+      body.append("endorsementLetter", endorsementLetter);
+  
+      options.body = body;
+  
+      if (!isValidGmail(personalGmail)) {
+        setError("Please provide a valid Gmail address (must end with @gmail.com)");
+        setIsSubmitting(false);
+        return;
+      }
     } else if (requestType === "reset") {
-        // Determine the endpoint based on request type
-        endpoint = "http://localhost:8080/reset-deped-account";
-        // For reset account requests
-        body = JSON.stringify({
-            selectedType: selectedType,
-            surname: surname,
-            firstName: firstName,
-            middleName: middleName,
-            school: school,
-            schoolID: schoolID,
-            employeeNumber: employeeNumber
-        });
-        options.headers = {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-        };
-
-        options.body = body;
-
-        if (!employeeNumber) {
-            setError("Please provide your employee number");
-            setIsSubmitting(false);
-            return;
-        }
+      endpoint = "http://localhost:8080/reset-deped-account";
+      body = JSON.stringify({
+        selectedType: selectedType,
+        surname: surname,
+        firstName: firstName,
+        middleName: middleName,
+        school: school,
+        schoolID: schoolID,
+        employeeNumber: employeeNumber
+      });
+      options.headers = {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      };
+  
+      options.body = body;
+  
+      if (!employeeNumber) {
+        setError("Please provide your employee number");
+        setIsSubmitting(false);
+        return;
+      }
     }
-
+  
     try {
-
-      // console.log("Sending request to:", endpoint);
-      // console.log("Request options:", options);
-
-      // For reset account requests, send JSON data
       const response = await fetch(endpoint, options);
-
+  
       if (response.ok) {
         const responseData = await response.json();
-        setSubmittedRequestType(requestType);
-        setShowSuccessModal(true);
-        setMessage(responseData.message || "Request submitted successfully!");
-         // Reset form
+        const requestNumber = responseData.requestNumber || responseData.resetNumber;
+  
+        Swal.fire({
+          title: 'Success!',
+          html: `${requestType === 'new' ? 'New Account' : 'Reset Account'} request has been submitted successfully!<br><br>Request Number: <b>${requestNumber}</b><br><br>Please screenshot to check your status`,
+          icon: 'success',
+          confirmButtonText: 'Done',
+          willClose: () => {
+            navigate("/"); // Redirect to login page
+          }
+        });
+  
+        // Reset form
         setFormData({
           requestType: "",
           selectedType: "",
@@ -252,18 +248,16 @@ import { Modal } from 'react-bootstrap';
           attachmentPreviews: []
         });
       } else {
-        // const errorData = await response.json(); 
-        const errorText = await response.text(); // Read the error message as text
+        const errorText = await response.text();
         console.error("Server responded with an error:", errorText);
-
         setError(`Failed to submit request: ${response.status} - ${errorText || response.statusText}`);
       }
-      } catch (error) {
-        console.error("Error submitting request:", error);
-        setError(`Error submitting request: ${error.message}`); 
-      } finally {
-        setIsSubmitting(false);
-      }
+    } catch (error) {
+      console.error("Error submitting request:", error);
+      setError(`Error submitting request: ${error.message}`);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -281,12 +275,12 @@ import { Modal } from 'react-bootstrap';
         >
           {error && <Alert variant="danger">{error}</Alert>}
           {message && <Alert variant="success">{message}</Alert>}
-
+  
           <Card.Body>
             <div className="mb-4">
               <h3>DepEd Account Request</h3>
             </div>
-
+  
             {/* Request Type dropdown */}
             <Form.Group as={Row} className="mb-3">
               <Form.Label column sm="2">Request Type</Form.Label>
@@ -303,7 +297,7 @@ import { Modal } from 'react-bootstrap';
                 </Form.Select>
               </Col>
             </Form.Group>
-
+  
             {/* Conditional form fields based on request type */}
             {formData.requestType && (
               <Form.Group as={Row} className="mb-3">
@@ -322,7 +316,7 @@ import { Modal } from 'react-bootstrap';
                 </Col>
               </Form.Group>
             )}
-
+  
             {/* Common fields for both request types */}
             {formData.selectedType && (
               <>
@@ -368,7 +362,7 @@ import { Modal } from 'react-bootstrap';
                     </Row>
                   </Col>
                 </Form.Group>
-
+  
                 <Form.Group as={Row} className="mb-3">
                   <Form.Label column sm="2">School</Form.Label>
                   <Col sm="10">
@@ -387,7 +381,7 @@ import { Modal } from 'react-bootstrap';
                     </Form.Select>
                   </Col>
                 </Form.Group>
-
+  
                 <Form.Group as={Row} className="mb-3">
                   <Form.Label column sm="2">School ID</Form.Label>
                   <Col sm="10">
@@ -403,7 +397,7 @@ import { Modal } from 'react-bootstrap';
                     </FloatingLabel>
                   </Col>
                 </Form.Group>
-
+  
                 {/* Fields specific to new account request */}
                 {formData.requestType === "new" && (
                   <>
@@ -422,7 +416,7 @@ import { Modal } from 'react-bootstrap';
                         </FloatingLabel>
                       </Col>
                     </Form.Group>
-
+  
                     <Form.Group as={Row} className="mb-3">
                       <Form.Label column sm="2">Personal Gmail</Form.Label>
                       <Col sm="10">
@@ -438,7 +432,7 @@ import { Modal } from 'react-bootstrap';
                         </FloatingLabel>
                       </Col>
                     </Form.Group>
-
+  
                     <Form.Group as={Row} className="mb-3">
                       <Form.Label column sm="2">Proof of Identity</Form.Label>
                       <Col sm="10">
@@ -474,7 +468,7 @@ import { Modal } from 'react-bootstrap';
                         ))}
                       </Col>
                     </Form.Group>
-
+  
                     <Form.Group as={Row} className="mb-3">
                       <Form.Label column sm="2">PRC ID</Form.Label>
                       <Col sm="10">
@@ -510,7 +504,7 @@ import { Modal } from 'react-bootstrap';
                         ))}
                       </Col>
                     </Form.Group>
-
+  
                     <Form.Group as={Row} className="mb-3">
                       <Form.Label column sm="2">Endorsement Letter</Form.Label>
                       <Col sm="10">
@@ -548,7 +542,7 @@ import { Modal } from 'react-bootstrap';
                     </Form.Group>
                   </>
                 )}
-
+  
                 {/* Fields specific to reset account request */}
                 {formData.requestType === "reset" && (
                   <Form.Group as={Row} className="mb-3">
@@ -570,7 +564,7 @@ import { Modal } from 'react-bootstrap';
               </>
             )}
           </Card.Body>
-
+  
           <Card.Footer
             className="d-flex justify-content-center mb-3"
             style={{ backgroundColor: "transparent", border: "none" }}
@@ -586,25 +580,6 @@ import { Modal } from 'react-bootstrap';
           </Card.Footer>
         </Card>
       </form>
-      <Modal
-        show={showSuccessModal}
-        onHide={handleCloseModal}
-        backdrop="static"
-        keyboard={false}
-        centered
-      >
-        <Modal.Header closeButton>
-          <Modal.Title>Success!</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <p>{submittedRequestType === 'new' ? 'New Account request' : 'Reset Account request'} has been submitted successfully!</p>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="dark" onClick={handleCloseModal}>
-            Done
-          </Button>
-        </Modal.Footer>
-      </Modal>
     </Container>
   );
 };
