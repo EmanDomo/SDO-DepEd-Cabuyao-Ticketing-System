@@ -13,7 +13,7 @@ const ViewBatches = ({ filterStatus = "all", searchTerm = "" }) => {
   const fetchBatches = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await axios.get("http://localhost:8080/batches");
+      const response = await axios.get("http://localhost:8080/schoolBatches");
       setBatches(Array.isArray(response.data) ? response.data : []);
       setError(""); // Clear any previous errors
     } catch (err) {

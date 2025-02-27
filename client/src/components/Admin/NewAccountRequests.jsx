@@ -373,7 +373,7 @@ const accountStatusOptions = [
               <Table hover className="mb-0 align-middle">
                 <thead>
                   <tr>
-                    <th className="text-center">Request ID</th>
+                    <th className="text-center">Request #</th>
                     <th className="text-center">Account Type</th>
                     <th className="text-center">Last Name</th>
                     <th className="text-center">First Name</th>
@@ -389,7 +389,7 @@ const accountStatusOptions = [
                 <tbody>
                   {filteredNewAccountRequests.map((request) => (
                     <tr key={request.id}>
-                      <td className="text-center">{request.id}</td>
+                      <td className="text-center">{request.requestNumber}</td>
                       <td className="text-center">{request.selected_type}</td>
                       <td className="text-center">{request.surname}</td>
                       <td className="text-center">{request.first_name}</td>

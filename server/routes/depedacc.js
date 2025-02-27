@@ -46,8 +46,6 @@ const upload = multer({
 router.use(express.json());
 
 router.post("/request-deped-account", (req, res) => {
-    console.log("request header", req.headers);
-    console.log("req files", req.files);
     upload(req, res, function (err) {
         if (err instanceof multer.MulterError) {
             console.error("Multer error:", err);
@@ -56,6 +54,9 @@ router.post("/request-deped-account", (req, res) => {
             console.error("General upload error:", err);
             return res.status(400).json({ error: err.message });
         }
+
+        // Generate a unique request number
+        const requestNumber = generateRequestTicketNumber();
 
         const {
             selectedType,
@@ -85,32 +86,36 @@ router.post("/request-deped-account", (req, res) => {
         }
 
         const query = `
-            INSERT INTO deped_account_requests
-            (selected_type, name, surname, first_name, middle_name, designation, school, school_id, personal_gmail,
-             proof_of_identity, prc_id, endorsement_letter)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `;
+        INSERT INTO deped_account_requests
+        (requestNumber, selected_type, name, surname, first_name, middle_name, designation, school, school_id, personal_gmail,
+         proof_of_identity, prc_id, endorsement_letter)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `;
 
-        conn.query(
-            query,
-            [selectedType, fullName, surname, firstName, middleName || '', designation, school, schoolID, personalGmail,
-             proofOfIdentity, prcID, endorsementLetter],
-            (err, result) => {
-                if (err) {
-                    console.error("Database error:", err);
-                    return res.status(500).json({ error: "Failed to submit request", dbError: err.message });
-                }
-                res.json({
-                    message: "New account request submitted successfully",
-                    requestId: result.insertId
-                });
+    conn.query(
+        query,
+        [requestNumber, selectedType, fullName, surname, firstName, middleName || '', designation, school, schoolID, personalGmail,
+         proofOfIdentity, prcID, endorsementLetter],
+        (err, result) => {
+            if (err) {
+                console.error("Database error:", err);
+                return res.status(500).json({ error: "Failed to submit request", dbError: err.message });
             }
-        );
-    });
+            res.json({
+                message: "New account request submitted successfully",
+                requestId: result.insertId,
+                requestNumber: requestNumber
+            });
+        }
+    );
+});
 });
 
 router.post("/reset-deped-account", (req, res) => {
-    console.log("Request Body:", req.body); // Log the entire request body
+    console.log("Request Body:", req.body);
+
+    // Generate a unique reset ticket number
+    const resetNumber = generateResetTicketNumber();
 
     const {
         selectedType,
@@ -131,13 +136,13 @@ router.post("/reset-deped-account", (req, res) => {
 
     const query = `
         INSERT INTO deped_account_reset_requests
-        (selected_type, name, surname, first_name, middle_name, school, school_id, employee_number)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        (resetNumber, selected_type, name, surname, first_name, middle_name, school, school_id, employee_number)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
     conn.query(
         query,
-        [selectedType, fullName, surname, firstName, middleName || '', school, schoolID, employeeNumber],
+        [resetNumber, selectedType, fullName, surname, firstName, middleName || '', school, schoolID, employeeNumber],
         (err, result) => {
             if (err) {
                 console.error("Database error:", err);
@@ -145,7 +150,8 @@ router.post("/reset-deped-account", (req, res) => {
             }
             res.json({
                 message: "Your request submitted successfully",
-                requestId: result.insertId
+                requestId: result.insertId,
+                resetNumber: resetNumber
             });
         }
     );
@@ -232,5 +238,41 @@ router.put("/deped-account-reset-requests/:id/status", (req, res) => {
         res.json({ message: "Status updated successfully" });
     });
 });
+
+const generateRequestTicketNumber = () => { 
+    const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  
+    // Generate 2 random letters
+    const randomLetters = 
+      letters[Math.floor(Math.random() * letters.length)] + 
+      letters[Math.floor(Math.random() * letters.length)];
+  
+    // Generate 6 random digits from timestamp
+    const timestampDigits = Date.now().toString().slice(-6);
+  
+    // Generate 5 random numbers (10000 - 99999)
+    const randomNumbers = Math.floor(10000 + Math.random() * 90000);
+  
+    return `REQ-${randomLetters}${timestampDigits}${randomNumbers}`;
+  };
+
+  const generateResetTicketNumber = () => {
+    const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  
+    // Generate 3 random letters (extra letter for uniqueness)
+    const randomLetters = 
+      letters[Math.floor(Math.random() * letters.length)] + 
+      letters[Math.floor(Math.random() * letters.length)] +
+      letters[Math.floor(Math.random() * letters.length)];
+  
+    // Generate 4 random digits from timestamp
+    const timestampDigits = Date.now().toString().slice(-4);
+  
+    // Generate 6 random numbers (100000 - 999999)
+    const randomNumbers = Math.floor(100000 + Math.random() * 900000);
+  
+    return `RST-${randomLetters}${timestampDigits}${randomNumbers}`;
+  };
+  
 
 module.exports = router;

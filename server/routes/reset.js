@@ -38,4 +38,22 @@ router.post("/idas-reset", (req, res) => {
     );
 });
 
+const generateResetTicketNumber = () => {
+    const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  
+    // Generate 3 random letters (extra letter for uniqueness)
+    const randomLetters = 
+      letters[Math.floor(Math.random() * letters.length)] + 
+      letters[Math.floor(Math.random() * letters.length)] +
+      letters[Math.floor(Math.random() * letters.length)];
+  
+    // Generate 4 random digits from timestamp
+    const timestampDigits = Date.now().toString().slice(-4);
+  
+    // Generate 6 random numbers (100000 - 999999)
+    const randomNumbers = Math.floor(100000 + Math.random() * 900000);
+  
+    return `RST-${randomLetters}${timestampDigits}${randomNumbers}`;
+  };
+
 module.exports = router;
