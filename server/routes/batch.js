@@ -28,6 +28,27 @@ router.get("/schoolbatches", (req, res) => {
     });
   });
 
+  router.get("/deletedevice/:device_name", (req, res) => {
+    const deviceName = decodeURIComponent(req.params.device_name);
+  
+    if (!deviceName) {
+      return res.status(400).json({ error: "Device name is required" });
+    }
+  
+    const query = "DELETE FROM tbl_devices WHERE device_name = ?";
+    conn.query(query, [deviceName], (err, result) => {
+      if (err) {
+        console.error("Error deleting device:", err.message);
+        return res.status(500).json({ error: err.message });
+      }
+      res.json({ success: true, message: "Device deleted successfully" });
+    });
+  });
+  
+  
+  
+  
+
 router.get("/batches/:schoolCode", (req, res) => {
     const { schoolCode } = req.params;
     console.log("Received schoolCode:", schoolCode); 

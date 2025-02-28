@@ -3,6 +3,8 @@ import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { jwtDecode } from "jwt-decode";
 import { FaRegTrashAlt } from "react-icons/fa";
+import { Dropdown } from 'react-bootstrap';
+
 import {
   Container,
   Card,
@@ -78,6 +80,36 @@ const BatchCreate = () => {
   const handleDistrictChange = (e) => {
     setDistrict(e.target.value);
   };
+
+  const handleDelete = async (deviceName) => {
+    if (!deviceName) {
+      console.error("Device name is missing!");
+      return;
+    }
+  
+    try {
+      const response = await axios.get(`http://localhost:8080/deletedevice/${encodeURIComponent(deviceName)}`);
+      if (response.data.success) {
+        console.log("Device deleted successfully");
+  
+        // Remove the deleted device from the state
+        setDevices((prevDevices) => prevDevices.filter(device => device.device_name !== deviceName));
+      } else {
+        console.error("Error deleting device:", response.data.error);
+      }
+    } catch (error) {
+      console.error("Error deleting device:", error.message);
+    }
+  };
+  
+  
+  
+  
+  
+  
+  
+
+
 
   const handleSchoolChange = (e) => {
     const selectedSchoolCode = e.target.value;
@@ -275,11 +307,11 @@ const BatchCreate = () => {
       className="batch-container"
       style={{
         display: "flex",
-        overflowY: 'auto',
+        overflowY: "auto",
         minHeight: "100vh",
       }}
     >
-      <Container fluid className="">
+      <Container fluid>
         <Row className="justify-content-center">
           <Col xs={12} sm={11} md={10} lg={8} xl={7}>
             <Form onSubmit={handleSubmit}>
@@ -288,7 +320,7 @@ const BatchCreate = () => {
                 style={{ height: "85vh", width: "100%", border: "none" }}
               >
                 <Card.Body className="p-4" style={{ overflow: "auto" }}>
-                  {/* Category */}
+                  {/* District */}
                   <Row className="mb-3">
                     <Form.Label column xs={12} sm={3} md={4}>
                       District:
@@ -310,6 +342,8 @@ const BatchCreate = () => {
                       </Form.Select>
                     </Col>
                   </Row>
+  
+                  {/* School */}
                   <Row className="mb-3">
                     <Form.Label column xs={12} sm={3} md={4}>
                       School:
@@ -324,17 +358,15 @@ const BatchCreate = () => {
                         <option value="">Select School</option>
                         {Array.isArray(schools) &&
                           schools.map((school) => (
-                            <option
-                              key={school.schoolCode}
-                              value={school.schoolCode}
-                            >
+                            <option key={school.schoolCode} value={school.schoolCode}>
                               {school.school}
                             </option>
                           ))}
                       </Form.Select>
                     </Col>
                   </Row>
-
+  
+                  {/* Delivery Date */}
                   <Row className="mb-3">
                     <Form.Label column xs={12} sm={3} md={4}>
                       Delivery Date:
@@ -347,8 +379,8 @@ const BatchCreate = () => {
                       ></Form.Control>
                     </Col>
                   </Row>
-
-                  {/* Comments */}
+  
+                  {/* Batch Number */}
                   <Row className="mb-3">
                     <Form.Label column xs={12} sm={3} md={4}>
                       Batch Number:
@@ -357,73 +389,88 @@ const BatchCreate = () => {
                       <Form.Control type="text" value={batchNumber} disabled />
                     </Col>
                   </Row>
-
+  
+                  {/* Devices Section */}
                   <div className="mt-4">
                     <h4>Devices</h4>
-                    <Button
-                      variant="secondary"
-                      onClick={handleAddDevice}
-                      className="mb-3"
-                    >
+                    <Button variant="secondary" onClick={handleAddDevice} className="mb-3">
                       Add Device
                     </Button>
-
+  
                     {batchDevices.map((device, index) => (
                       <Row key={index} className="mb-3">
+                        {/* Device Dropdown */}
                         <Col md={5}>
-                          <Form.Control
-                            as="select"
-                            value={device.deviceType}
-                            onChange={(e) =>
-                              handleDeviceChange(
-                                index,
-                                "deviceType",
-                                e.target.value
-                              )
-                            }
-                          >
-                            <option value="">Select Device Type</option>
-                            {devices.length > 0 ? (
-                              devices.map((device, idx) => (
-                                <option key={idx} value={device.device_name}>
-                                  {device.device_name}
-                                </option>
-                              ))
-                            ) : (
-                              <option>No devices available</option>
-                            )}
-                            <option value="new">+ Add New Device Type</option>
-                          </Form.Control>
+                          <Dropdown>
+                            <Dropdown.Toggle variant="light" className="w-100">
+                              {device.deviceType ? device.deviceType : "Select Device Type"}
+                            </Dropdown.Toggle>
+  
+                            <Dropdown.Menu className="w-100">
+                              {devices.length > 0 ? (
+                                devices.map((deviceOption) => (
+                                  <Dropdown.Item
+                                    key={deviceOption.device_id}
+                                    onClick={() =>
+                                      handleDeviceChange(index, "deviceType", deviceOption.device_name)
+                                    }
+                                    className="d-flex justify-content-between align-items-center"
+                                  >
+                                    {deviceOption.device_name}
+                                    <Button
+  variant="danger"
+  size="sm"
+  onClick={(e) => {
+    e.stopPropagation(); // Prevent dropdown from closing
+    console.log("Clicked delete for device:", deviceOption.device_name); // Debugging log
+    handleDelete(deviceOption.device_name);
+  }}
+>
+  🗑
+</Button>
+
+
+
+
+                                  </Dropdown.Item>
+                                ))
+                              ) : (
+                                <Dropdown.Item disabled>No devices available</Dropdown.Item>
+                              )}
+  
+                              <Dropdown.Divider />
+                              <Dropdown.Item onClick={() => handleDeviceChange(index, "deviceType", "new")}>
+                                + Add New Device Type
+                              </Dropdown.Item>
+                            </Dropdown.Menu>
+                          </Dropdown>
                         </Col>
+  
+                        {/* Serial Number */}
                         <Col md={5}>
                           <Form.Control
                             type="text"
                             placeholder="Serial Number"
                             value={device.serialNumber}
                             onChange={(e) =>
-                              handleDeviceChange(
-                                index,
-                                "serialNumber",
-                                e.target.value
-                              )
+                              handleDeviceChange(index, "serialNumber", e.target.value)
                             }
                           />
                         </Col>
+  
+                        {/* Remove Device Button */}
                         <Col md={2}>
-                          <Button
-                            variant="danger"
-                            onClick={() => handleRemoveDevice(index)}
-                          >
+                          <Button variant="danger" onClick={() => handleRemoveDevice(index)}>
                             Remove
                           </Button>
                         </Col>
                       </Row>
                     ))}
                   </div>
-
+  
                   {error && <div className="text-danger mt-3">{error}</div>}
                 </Card.Body>
-
+  
                 {/* Submit Button */}
                 <Card.Footer className="text-center border-0 bg-transparent pb-4">
                   <Button
@@ -447,6 +494,6 @@ const BatchCreate = () => {
       </Container>
     </div>
   );
-};
+}; 
 
 export default BatchCreate;
