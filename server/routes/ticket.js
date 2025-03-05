@@ -409,5 +409,62 @@ router.get("/tickets/:username/:status", (req, res) => {
     });
 });
 
+router.get('/issues', (req, res) => {
+  const query = 'SELECT * FROM tbl_issues';
+  conn.query(query, (err, result) => {
+      if (err) {
+          console.error('Error fetching issues:', err.message);
+          return res.status(500).json({ error: err.message });
+      }
+      res.json(result);
+  });
+});
+
+
+router.post("/addIssue", (req, res) => {
+  const { issue_name, issue_category } = req.body;
+
+  if (!issue_name) {
+      return res.status(400).json({ error: "Issue name is required" });
+  }
+
+  if (!issue_category) {
+      return res.status(400).json({ error: "Issue category is required" });
+  }
+
+  const query = "INSERT INTO tbl_issues (issue_name, issue_category) VALUES (?, ?)";
+  conn.query(query, [issue_name, issue_category], (err, result) => {
+      if (err) {
+          console.error("Error adding issue:", err.message);
+          return res.status(500).json({ error: err.message });
+      }
+      console.log("Added issue:", result);
+      res.json({ message: "Issue added successfully", issue_id: result.insertId });
+  });
+});
+
+router.get("/deleteissue/:issue_id", (req, res) => {
+  const issueId = parseInt(req.params.issue_id, 10);
+
+  if (isNaN(issueId)) {
+    return res.status(400).json({ error: "Invalid issue ID" });
+  }
+
+  const query = "DELETE FROM tbl_issues WHERE issue_id = ?";
+  conn.query(query, [issueId], (err, result) => {
+    if (err) {
+      console.error("Error deleting issue:", err.message);
+      return res.status(500).json({ error: err.message });
+    }
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "Issue not found" });
+    }
+
+    res.json({ message: "Issue deleted successfully" });
+  });
+});
+
+
   
 module.exports = router;

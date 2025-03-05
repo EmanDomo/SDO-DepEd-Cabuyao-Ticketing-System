@@ -23,6 +23,7 @@ import CancelledBatches from "./components/School/Status/CancelledBatches";
 import AdminDashboard from "./components/Admin/AdminDashboard";
 import Batches from "./components/Admin/Batches";
 import BatchCreate from "./components/Admin/BatchCreate";
+import Issues from "./components/Admin/Issues";
 
 // Public
 import Forbidden from "./components/Public/Forbidden";
@@ -122,6 +123,14 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={["Admin"]}>
                 <AdminDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/issues"
+            element={
+              <ProtectedRoute allowedRoles={["Admin"]}>
+                <Issues />
               </ProtectedRoute>
             }
           />

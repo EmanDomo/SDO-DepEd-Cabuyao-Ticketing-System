@@ -86,12 +86,12 @@ const BatchCreate = () => {
       console.error("Device name is missing!");
       return;
     }
-  
+
     try {
       const response = await axios.get(`http://localhost:8080/deletedevice/${encodeURIComponent(deviceName)}`);
       if (response.data.success) {
         console.log("Device deleted successfully");
-  
+
         // Remove the deleted device from the state
         setDevices((prevDevices) => prevDevices.filter(device => device.device_name !== deviceName));
       } else {
@@ -101,13 +101,13 @@ const BatchCreate = () => {
       console.error("Error deleting device:", error.message);
     }
   };
-  
-  
-  
-  
-  
-  
-  
+
+
+
+
+
+
+
 
 
 
@@ -151,12 +151,12 @@ const BatchCreate = () => {
       showAddDeviceModal();
       return;
     }
-  
+
     const updatedDevices = [...batchDevices];
     updatedDevices[index] = { ...updatedDevices[index], [field]: value };
     setBatchDevices(updatedDevices);
   };
-  
+
   const showAddDeviceModal = () => {
     Swal.fire({
       title: 'Add New Device Type',
@@ -176,22 +176,22 @@ const BatchCreate = () => {
       allowOutsideClick: () => !Swal.isLoading()
     });
   };
-  
+
   const addNewDeviceType = async (deviceName) => {
     try {
       const response = await axios.post("http://localhost:8080/adddevice", {
         device_name: deviceName,
       });
-  
+
       if (response.status === 200) {
         const newDevice = {
           device_id: response.data.device_id,
           device_name: deviceName,
         };
-        
+
         // Add new device to the list
         setDevices(prevDevices => [...prevDevices, newDevice]);
-        
+
         // Auto-select the newly created device for the current row
         if (currentDeviceIndex !== null) {
           const updatedBatchDevices = [...batchDevices];
@@ -204,13 +204,13 @@ const BatchCreate = () => {
           // Reset currentDeviceIndex after using it
           setCurrentDeviceIndex(null);
         }
-        
+
         Swal.fire({
           icon: 'success',
           title: 'Success!',
           text: 'New device type added successfully!'
         });
-        
+
         return true;
       }
     } catch (err) {
@@ -293,8 +293,8 @@ const BatchCreate = () => {
       Swal.fire({
         icon: 'error',
         title: 'Error',
-        text: err.response?.data?.error || 
-              "An error occurred while creating the batch. Please try again."
+        text: err.response?.data?.error ||
+          "An error occurred while creating the batch. Please try again."
       });
     } finally {
       setIsSubmitting(false);
@@ -342,7 +342,7 @@ const BatchCreate = () => {
                       </Form.Select>
                     </Col>
                   </Row>
-  
+
                   {/* School */}
                   <Row className="mb-3">
                     <Form.Label column xs={12} sm={3} md={4}>
@@ -365,7 +365,7 @@ const BatchCreate = () => {
                       </Form.Select>
                     </Col>
                   </Row>
-  
+
                   {/* Delivery Date */}
                   <Row className="mb-3">
                     <Form.Label column xs={12} sm={3} md={4}>
@@ -379,7 +379,7 @@ const BatchCreate = () => {
                       ></Form.Control>
                     </Col>
                   </Row>
-  
+
                   {/* Batch Number */}
                   <Row className="mb-3">
                     <Form.Label column xs={12} sm={3} md={4}>
@@ -389,14 +389,14 @@ const BatchCreate = () => {
                       <Form.Control type="text" value={batchNumber} disabled />
                     </Col>
                   </Row>
-  
+
                   {/* Devices Section */}
                   <div className="mt-4">
                     <h4>Devices</h4>
                     <Button variant="secondary" onClick={handleAddDevice} className="mb-3">
                       Add Device
                     </Button>
-  
+
                     {batchDevices.map((device, index) => (
                       <Row key={index} className="mb-3">
                         {/* Device Dropdown */}
@@ -405,7 +405,7 @@ const BatchCreate = () => {
                             <Dropdown.Toggle variant="light" className="w-100">
                               {device.deviceType ? device.deviceType : "Select Device Type"}
                             </Dropdown.Toggle>
-  
+
                             <Dropdown.Menu className="w-100">
                               {devices.length > 0 ? (
                                 devices.map((deviceOption) => (
@@ -418,26 +418,22 @@ const BatchCreate = () => {
                                   >
                                     {deviceOption.device_name}
                                     <Button
-  variant="danger"
-  size="sm"
-  onClick={(e) => {
-    e.stopPropagation(); // Prevent dropdown from closing
-    console.log("Clicked delete for device:", deviceOption.device_name); // Debugging log
-    handleDelete(deviceOption.device_name);
-  }}
->
-  🗑
-</Button>
-
-
-
-
+                                      variant="danger"
+                                      size="sm"
+                                      onClick={(e) => {
+                                        e.stopPropagation(); // Prevent dropdown from closing
+                                        console.log("Clicked delete for device:", deviceOption.device_name); // Debugging log
+                                        handleDelete(deviceOption.device_name);
+                                      }}
+                                    >
+                                      🗑
+                                    </Button>
                                   </Dropdown.Item>
                                 ))
                               ) : (
                                 <Dropdown.Item disabled>No devices available</Dropdown.Item>
                               )}
-  
+
                               <Dropdown.Divider />
                               <Dropdown.Item onClick={() => handleDeviceChange(index, "deviceType", "new")}>
                                 + Add New Device Type
@@ -445,7 +441,7 @@ const BatchCreate = () => {
                             </Dropdown.Menu>
                           </Dropdown>
                         </Col>
-  
+
                         {/* Serial Number */}
                         <Col md={5}>
                           <Form.Control
@@ -457,7 +453,7 @@ const BatchCreate = () => {
                             }
                           />
                         </Col>
-  
+
                         {/* Remove Device Button */}
                         <Col md={2}>
                           <Button variant="danger" onClick={() => handleRemoveDevice(index)}>
@@ -467,10 +463,10 @@ const BatchCreate = () => {
                       </Row>
                     ))}
                   </div>
-  
+
                   {error && <div className="text-danger mt-3">{error}</div>}
                 </Card.Body>
-  
+
                 {/* Submit Button */}
                 <Card.Footer className="text-center border-0 bg-transparent pb-4">
                   <Button
@@ -494,6 +490,6 @@ const BatchCreate = () => {
       </Container>
     </div>
   );
-}; 
+};
 
 export default BatchCreate;
