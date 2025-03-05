@@ -233,6 +233,17 @@ router.get("/schoolList", (req, res) => {
   });
 });
 
+router.get("/designations", (req, res) => {
+  const query = "SELECT * FROM designations";
+  conn.query(query, (err, results) => {
+    if (err) {
+      console.error("Database error:", err);
+      return res.status(500).json({ error: "Failed to fetch designations" });
+    }
+    res.json(results);
+  });
+});
+
 router.get("/deped-account-requests", (req, res) => {
   const query = `
         SELECT * FROM deped_account_requests
@@ -384,4 +395,14 @@ router.get("/check-transaction", (req, res) => {
     });
   });
 
+router.get("/designations", (req, res) => {
+  const query = "SELECT * FROM designations";
+  conn.query(query, (err, results) => {
+    if (err) {
+      console.error("Database error:", err);
+      return res.status(500).json({ error: "Failed to fetch designations" });
+    }
+    res.json(results);
+  });
+});
 module.exports = router;

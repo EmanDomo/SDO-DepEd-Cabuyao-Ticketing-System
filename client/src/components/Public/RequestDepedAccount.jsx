@@ -10,6 +10,7 @@ import Swal from "sweetalert2";
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [submittedRequestType, setSubmittedRequestType] = useState("");
   const [schools, setSchools] = useState([]); // Store schools from the database
+  const [designations, setDesignations] = useState([]); // Store designations from the database
   const [formData, setFormData] = useState({
     requestType: "",
     selectedType: "",
@@ -48,9 +49,27 @@ import Swal from "sweetalert2";
       }
     };
 
-    fetchSchools();
+        // Fetch designations from the database on component mount
+        const fetchDesignations = async () => {
+          try {
+            const response = await fetch("http://localhost:8080/designations");
+            if (response.ok) {
+              const data = await response.json();
+              setDesignations(data);
+            } else {
+              setError("Failed to fetch designations.");
+            }
+          } catch (err) {
+            console.error("Error fetching designations:", err);
+            setError("Error fetching designations. Please check your network and server.");
+          }
+        };
+    
+        fetchSchools();
+        fetchDesignations();
   }, []);
 
+  
   const handleRequestTypeChange = (e) => {
     setFormData(prev => ({
       ...prev,
@@ -395,16 +414,19 @@ import Swal from "sweetalert2";
                   <Form.Group as={Row} className="mb-3">
                     <Form.Label column xs={12}>Designation</Form.Label>
                     <Col xs={12}>
-                      <FloatingLabel label="Designation">
-                        <Form.Control
-                          type="text"
-                          name="designation"
-                          value={formData.designation}
-                          onChange={handleChange}
-                          placeholder="Designation"
-                          required
-                        />
-                      </FloatingLabel>
+                      <Form.Select
+                        name="designation"
+                        value={formData.designation}
+                        onChange={handleChange}
+                        required
+                      >
+                        <option value="">-- Select Designation --</option>
+                        {designations.map((designation) => (
+                          <option key={designation.id} value={designation.designation}>
+                            {designation.designation}
+                          </option>
+                        ))}
+                      </Form.Select>
                     </Col>
                   </Form.Group>
   
@@ -577,7 +599,7 @@ import Swal from "sweetalert2";
               width: "70%",
               border: "none",
               boxShadow: "2px 2px 10px 2px rgba(0, 0, 0, 0.15)",
-              height: "90vh",
+              height: "85vh",
               overflowY: "auto"
             }}
           >
@@ -710,18 +732,21 @@ import Swal from "sweetalert2";
                   {formData.requestType === "new" && (
                     <>
                       <Form.Group as={Row} className="mb-3">
-                      <Form.Label column xs={12} sm={12} md={3} lg={2}>Designation</Form.Label>
-                      <Col xs={12} sm={12} md={9} lg={10}>
-                          <FloatingLabel label="Designation">
-                            <Form.Control
-                              type="text"
-                              name="designation"
-                              value={formData.designation}
-                              onChange={handleChange}
-                              placeholder="Designation"
-                              required
-                            />
-                          </FloatingLabel>
+                        <Form.Label column xs={12} sm={12} md={3} lg={2}>Designation</Form.Label>
+                        <Col xs={12} sm={12} md={9} lg={10}>
+                          <Form.Select
+                            name="designation"
+                            value={formData.designation}
+                            onChange={handleChange}
+                            required
+                          >
+                            <option value="">-- Select Designation --</option>
+                            {designations.map((designation) => (
+                              <option key={designation.id} value={designation.designation}>
+                                {designation.designation}
+                              </option>
+                            ))}
+                          </Form.Select>
                         </Col>
                       </Form.Group>
   
@@ -915,3 +940,5 @@ import Swal from "sweetalert2";
 };
 
 export default RequestDepedAccount;
+
+

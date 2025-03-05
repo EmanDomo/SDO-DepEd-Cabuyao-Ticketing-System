@@ -1,5 +1,3 @@
-//LOGIN.JSX
-
 import React, { useRef, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Container, Form, Button, Card } from "react-bootstrap";
@@ -105,6 +103,12 @@ const Login = () => {
     }
   };
 
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter") {
+      handleLogin(e);
+    }
+  };
+
   return (
     <div className="schoolLoginMain" id="school">
       <Card className="schoolLogin mx-auto">
@@ -116,7 +120,11 @@ const Login = () => {
         </Card.Header>
 
         <Card.Body className="schoolInput pt-5">
-          <Form ref={formRef} onSubmit={handleLogin}>
+          <Form
+            ref={formRef}
+            onSubmit={handleLogin}
+            onKeyDown={handleKeyDown} // Add the keydown event listener here
+          >
             <InputGroup className="mb-5 schoolUsernameGroup">
               <InputGroup.Text id="basic-addon1" className="schoolIcon">
                 <LuUser className="fs-4" />

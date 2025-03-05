@@ -118,10 +118,20 @@ router.post("/adddevice", (req, res) => {
 router.post("/createbatch", (req, res) => {
     const { batchNumber, sendDate, district, schoolCode, schoolName, devices } = req.body;
 
-    const query = "INSERT INTO tbl_batches (batch_number, send_date, schoolCode, school_name, status) VALUES (?, ?, ?, ?, ?)";
+    // Get current date
+    const currentDate = new Date();
+    const sendDateObj = new Date(sendDate);
+    
+    // Determine batch status based on send date
+    const status = sendDateObj <= currentDate ? "Delivered" : "Pending";
+    
+    // If the batch is in the past, set received date to the send date
+    const receivedDate = status === "Delivered" ? sendDate : null;
+
+    const query = "INSERT INTO tbl_batches (batch_number, send_date, schoolCode, school_name, status, received_date) VALUES (?, ?, ?, ?, ?, ?)";
     conn.query(
         query,
-        [batchNumber, sendDate, schoolCode, schoolName, "Pending"],
+        [batchNumber, sendDate, schoolCode, schoolName, status, receivedDate],
         (err, result) => {
             if (err) {
                 console.error("Error creating batch:", err.message);
@@ -131,7 +141,6 @@ router.post("/createbatch", (req, res) => {
 
             // Insert devices
             devices.forEach(device => {
-                // In the backend route's device insertion
                 const deviceQuery = "INSERT INTO tbl_batch_devices (batch_id, device_type, device_number) VALUES (?, ?, ?)";
                 conn.query(
                     deviceQuery,
@@ -142,7 +151,11 @@ router.post("/createbatch", (req, res) => {
                 );
             });
 
-            res.json({ message: "Batch created!", batchId });
+            res.json({ 
+                message: "Batch created!", 
+                batchId, 
+                status 
+            });
         }
     );
 });
