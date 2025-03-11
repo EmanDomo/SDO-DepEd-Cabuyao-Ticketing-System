@@ -12,7 +12,7 @@ router.post("/login", async (req, res) => {
     if (!req.body || !req.body.username || !req.body.password) {
         return res.status(400).json({ message: "Username and password are required" });
     }
-
+''
     const { username, password } = req.body;
     const currentTime = Date.now();
 

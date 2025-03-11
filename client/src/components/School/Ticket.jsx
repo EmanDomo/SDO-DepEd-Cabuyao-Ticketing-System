@@ -110,7 +110,6 @@ const Ticket = () => {
                 <th class="px-3" style="color: #294a70">Select</th>
                 <th class="px-3" style="color: #294a70">Device Type</th>
                 <th class="px-3" style="color: #294a70">Serial Number</th>
-                <th class="px-3" style="color: #294a70">Issue Description</th>
               </tr>
             </thead>
             <tbody id="devices-table-body">
@@ -129,12 +128,6 @@ const Ticket = () => {
                     <td class="px-3">${device.device_type}</td>
                     <td class="px-3">${device.device_number}</td>
                     <td class="px-3">
-                      <div id="description-container-${device.device_number}" 
-                        style="display: ${isSelected ? 'block' : 'none'}">
-                        <textarea class="form-control issue-description" 
-                          data-id="${device.device_number}"
-                          placeholder="Describe the issue">${existingDescription || ''}</textarea>
-                      </div>
                     </td>
                   </tr>
                 `;
