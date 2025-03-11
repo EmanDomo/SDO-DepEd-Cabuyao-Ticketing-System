@@ -11,6 +11,7 @@ import ResetAccountRequests from "./ResetAccountRequests";
 import BatchCreate from "./BatchCreate";
 import AdminHeader from "./AdminHeader";
 import ViewBatches from "./ViewBatches";
+import Issues from "./Issues";
 import { useWindowSize } from "react-use";
 
 const AdminDashboard = () => {
@@ -287,6 +288,13 @@ const AdminDashboard = () => {
 
             <Tab.Pane eventKey="viewBatches">
               <ViewBatches
+                filterStatus={filterStatus}
+                searchTerm={searchTerm}
+              />
+            </Tab.Pane>
+
+            <Tab.Pane eventKey="viewBatches">
+              <Issues
                 filterStatus={filterStatus}
                 searchTerm={searchTerm}
               />
