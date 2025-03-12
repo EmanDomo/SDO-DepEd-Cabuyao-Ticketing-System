@@ -464,7 +464,5 @@ router.get("/deleteissue/:issue_id", (req, res) => {
     res.json({ message: "Issue deleted successfully" });
   });
 });
-
-
   
 module.exports = router;
