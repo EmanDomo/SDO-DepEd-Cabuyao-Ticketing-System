@@ -17,7 +17,7 @@ const SchoolDashboard = () => {
   const navigate = useNavigate();
   const [school, setSchool] = useState(null);
   const { logout } = useAuth();
-  const { width } = useWindowSize(); // Get the current window width
+  const { width } = useWindowSize(); 
 
   useEffect(() => {
     const token = localStorage.getItem("token");
