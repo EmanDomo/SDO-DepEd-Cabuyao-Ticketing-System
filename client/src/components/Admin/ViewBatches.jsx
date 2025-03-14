@@ -27,7 +27,7 @@ const ViewBatches = ({ filterStatus = "all", searchTerm = "" }) => {
   useEffect(() => {
     fetchBatches();
     // Set up a refresh interval (every 30 seconds)
-    const interval = setInterval(fetchBatches, 30000);
+    const interval = setInterval(fetchBatches);
     return () => clearInterval(interval);
   }, [fetchBatches]);
 
@@ -315,7 +315,7 @@ const ViewBatches = ({ filterStatus = "all", searchTerm = "" }) => {
                     <th className="px-3" style={{ color: "#294a70" }}>
                       Status
                     </th>
-                    <th className="px-3" style={{ color: "#294a70" }}>
+                    <th className="px-3 text-center" style={{ color: "#294a70" }}>
                       Actions
                     </th>
                   </tr>

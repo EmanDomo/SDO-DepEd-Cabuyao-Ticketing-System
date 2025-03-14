@@ -10,6 +10,7 @@ import { BiUserPlus } from "react-icons/bi";
 import { MdOutlineRestartAlt } from "react-icons/md";
 import { CiViewList } from "react-icons/ci";
 import Swal from "sweetalert2";
+import { MdAddChart } from "react-icons/md";
 
 const AdminHeader = ({ 
   firstName, 
@@ -144,6 +145,14 @@ const AdminHeader = ({
           >
             <CiViewList className="me-3 fs-5" />
             View Batch
+          </button>
+
+          <button
+            className={`nav-link text-dark d-flex align-items-center py-3 px-1 hover-effect border-0 bg-transparent w-100 text-start ${activeTab === 'issues' ? 'active-nav-item' : ''}`}
+            onClick={() => setActiveTab('issues')}
+          >
+            <MdAddChart className="me-3 fs-5" />
+            Manage Issue
           </button>
         </div>
       </div>

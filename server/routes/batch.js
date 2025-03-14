@@ -119,11 +119,15 @@ router.post("/createbatch", (req, res) => {
     const { batchNumber, sendDate, district, schoolCode, schoolName, devices } = req.body;
 
     // Get current date
-    const currentDate = new Date();
-    const sendDateObj = new Date(sendDate);
-    
-    // Determine batch status based on send date
-    const status = sendDateObj <= currentDate ? "Delivered" : "Pending";
+   // Get current date (with time reset to midnight for proper date comparison)
+const currentDate = new Date();
+currentDate.setHours(0, 0, 0, 0);
+
+const sendDateObj = new Date(sendDate);
+sendDateObj.setHours(0, 0, 0, 0);
+
+// Determine batch status based on send date - only past dates are "Delivered"
+const status = sendDateObj < currentDate ? "Delivered" : "Pending";
     
     // If the batch is in the past, set received date to the send date
     const receivedDate = status === "Delivered" ? sendDate : null;

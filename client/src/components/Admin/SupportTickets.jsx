@@ -472,7 +472,7 @@ const SupportTickets = ({
         }
       `}</style>
     </div>
-  );
+  );1``
 };
 
 export default SupportTickets;

@@ -140,14 +140,53 @@ const AdminDashboard = () => {
     "Rejected",
   ];
   const viewBatchOptions = ["Delivered", "Pending"];
+  const issuesCategoryOptions = ["Hardware", "Software"]; // Added category options for issues
 
   // Handle tab change from header
   const handleTabChange = (tab) => {
     setActiveTab(tab);
+    // Reset filter and search when changing tabs
+    setFilterStatus("all");
+    setSearchTerm("");
   };
 
   // Determine if search/filter should be visible
   const shouldShowSearchFilter = activeTab !== "batchCreate";
+
+  // Get search placeholder based on active tab
+  const getSearchPlaceholder = () => {
+    switch (activeTab) {
+      case "issues":
+        return "Enter issue name";
+      case "tickets":
+        return "Enter No. or Requestor or Category";
+      case "newAccounts":
+        return "Enter No. or Type or Name or School";
+      case "resetAccounts":
+        return "Enter No. or Type or Name or School";
+      case "viewBatches":
+        return "Enter No.	or School Name	or School Code";
+      default:
+        return "Search";
+    }
+  };
+
+  // Get filter options based on active tab
+  const getFilterOptions = () => {
+    switch (activeTab) {
+      case "tickets":
+        return statusOptions;
+      case "newAccounts":
+      case "resetAccounts":
+        return accountStatusOptions;
+      case "viewBatches":
+        return viewBatchOptions;
+      case "issues":
+        return issuesCategoryOptions;
+      default:
+        return [];
+    }
+  };
 
   return (
     <>
@@ -192,27 +231,13 @@ const AdminDashboard = () => {
       >
         {error && <Alert variant="danger">{error}</Alert>}
 
-        {/* <div className="mb-4">
-          <h3 style={{ color: "#294a70" }}>
-            {activeTab === "tickets"
-              ? "Tickets"
-              : activeTab === "newAccounts"
-              ? "New Account Requests"
-              : activeTab === "resetAccounts"
-              ? "Reset Account Requests"
-              : activeTab === "viewBatches"
-              ? "Batches"
-              : "Create Batch"}
-          </h3>
-        </div> */}
-
         {/* Search and Filter - Only show if not on BatchCreate tab */}
         {shouldShowSearchFilter && (
           <div className="row search-filter-container flex-wrap">
             <div className="col-6 d-flex justify-content-start">
               <Form.Control
                 type="text"
-                placeholder="Search"
+                placeholder={getSearchPlaceholder()}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-100"
@@ -226,24 +251,12 @@ const AdminDashboard = () => {
                 className="w-100"
                 style={{ maxWidth: "25%" }}
               >
-                <option value="all">All Status</option>
-                {activeTab === "tickets"
-                  ? statusOptions.map((status) => (
-                      <option key={status} value={status}>
-                        {status}
-                      </option>
-                    ))
-                  :activeTab === "viewBatches"
-                  ? viewBatchOptions.map((status) => (
-                      <option key={status} value={status}>
-                        {status}
-                      </option>
-                    ))
-                  : accountStatusOptions.map((status) => (
-                      <option key={status} value={status}>
-                        {status}
-                      </option>
-                    ))}
+                <option value="all">All {activeTab === "issues" ? "Categories" : "Status"}</option>
+                {getFilterOptions().map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
               </Form.Select>
             </div>
           </div>
@@ -293,7 +306,7 @@ const AdminDashboard = () => {
               />
             </Tab.Pane>
 
-            <Tab.Pane eventKey="viewBatches">
+            <Tab.Pane eventKey="issues">
               <Issues
                 filterStatus={filterStatus}
                 searchTerm={searchTerm}

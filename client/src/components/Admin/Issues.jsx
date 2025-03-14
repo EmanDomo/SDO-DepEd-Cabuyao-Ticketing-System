@@ -1,91 +1,52 @@
-import React, { useState, useEffect } from "react";
-import { useAuth } from "../Context/AuthContext";
+import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
 import { 
-  Container, 
   Card, 
-  Form, 
+  Table, 
   Button, 
-  Table,
+  Badge,
+  Form,
   Row,
   Col,
-  Badge,
-  Spinner,
-  InputGroup,
-  FormControl
+  Spinner 
 } from "react-bootstrap";
 import { 
   FaRegTrashAlt, 
   FaPlus, 
-  FaFilter, 
-  FaSearch, 
-  FaLaptop, 
-  FaDesktop 
+  FaDesktop,
+  FaLaptop 
 } from "react-icons/fa";
 
-const Issues = () => {
-  // State variables
+const Issues = ({ filterStatus = "all", searchTerm = "" }) => {
   const [issues, setIssues] = useState([]);
-  const [filteredIssues, setFilteredIssues] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [newIssueName, setNewIssueName] = useState("");
   const [issueCategory, setIssueCategory] = useState("hardware");
-  const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filterCategory, setFilterCategory] = useState("all");
 
-  // Fetch issues on component mount
-  useEffect(() => {
-    fetchIssues();
-  }, []);
-
-  // Filter issues when search term or filter category changes
-  useEffect(() => {
-    filterIssues();
-  }, [searchTerm, filterCategory, issues]);
-
-  // Filter issues based on search term and category
-  const filterIssues = () => {
-    let result = [...issues];
-    
-    // Filter by search term
-    if (searchTerm.trim() !== "") {
-      result = result.filter(issue => 
-        issue.issue_name.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-    
-    // Filter by category
-    if (filterCategory !== "all") {
-      result = result.filter(issue => 
-        issue.issue_category === filterCategory
-      );
-    }
-    
-    setFilteredIssues(result);
-  };
-
-  // Fetch issues from backend
-  const fetchIssues = async () => {
-    setIsLoading(true);
+  // Use useCallback to prevent unnecessary re-renders
+  const fetchIssues = useCallback(async () => {
     try {
+      setLoading(true);
       const response = await axios.get("http://localhost:8080/issues");
-      setIssues(response.data);
-      setFilteredIssues(response.data);
+      setIssues(Array.isArray(response.data) ? response.data : []);
+      setError(""); // Clear any previous errors
     } catch (err) {
       console.error("Error fetching issues:", err);
-      setError("Failed to fetch issues. Please try again.");
-      Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: "Failed to fetch issues. Please try again."
-      });
+      setError("Failed to load issues. Please try again later.");
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchIssues();
+    // Set up a refresh interval (every 30 seconds)
+    const interval = setInterval(fetchIssues, 30000);
+    return () => clearInterval(interval);
+  }, [fetchIssues]);
 
   // Handle adding a new issue
   const handleAddIssue = async (e) => {
@@ -101,7 +62,7 @@ const Issues = () => {
     }
 
     try {
-      const response = await axios.post("http://localhost:8080/addIssue", {
+      await axios.post("http://localhost:8080/addIssue", {
         issue_name: newIssueName.trim(),
         issue_category: issueCategory
       });
@@ -148,14 +109,14 @@ const Issues = () => {
       text: 'Do you want to delete this issue?',
       icon: 'warning',
       showCancelButton: true,
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#d33',
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
       confirmButtonText: 'Yes, delete it!'
     });
 
     if (result.isConfirmed) {
       try {
-        const response = await axios.get(`http://localhost:8080/deleteissue/${issueId}`);
+        await axios.get(`http://localhost:8080/deleteissue/${issueId}`);
 
         // Show success message
         Swal.fire({
@@ -177,141 +138,174 @@ const Issues = () => {
     }
   };
 
-  // Get category badge
-  const getCategoryBadge = (category) => {
-    if (category === "hardware") {
-      return <Badge bg="danger" className="d-flex align-items-center"><FaDesktop className="me-1" /> Hardware</Badge>;
-    } else {
-      return <Badge bg="info" className="d-flex align-items-center"><FaLaptop className="me-1" /> Software</Badge>;
+  // Get category badge variant
+  const getCategoryBadgeVariant = (category) => {
+    switch (category) {
+      case "hardware":
+        return "danger";
+      case "software":
+        return "info";
+      default:
+        return "secondary";
     }
   };
 
+  // Memoize filtered issues to avoid recalculation on each render
+  const filteredIssues = React.useMemo(() => {
+    return issues.filter((issue) => {
+      const categoryMatch =
+        filterStatus === "all" ||
+        (issue.issue_category &&
+          issue.issue_category.toLowerCase() === filterStatus.toLowerCase());
+
+      const search = searchTerm.toLowerCase();
+      const searchMatch =
+        search === "" ||
+        (issue.issue_name && issue.issue_name.toLowerCase().includes(search));
+
+      return categoryMatch && searchMatch;
+    });
+  }, [issues, filterStatus, searchTerm]);
+
+  if (loading && issues.length === 0) {
+    return (
+      <div className="d-flex justify-content-center align-items-center vh-100">
+        <div className="spinner-border" role="status">
+          <span className="visually-hidden">Loading issues...</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <Container className="mt-4 mb-4">
-      <Card className="shadow-sm">
-        <Card.Header className="bg-primary text-white">
-          <h2 className="mb-0"><FaPlus className="me-2" /> Issue Management</h2>
+    <div className="vh-90 d-flex flex-column">
+      <Card className="flex-grow-1 m-0 border-0 rounded-0">
+        <Card.Header
+          className="py-3 sticky-top"
+          style={{ backgroundColor: "transparent" }}
+        >
+          <div className="container-fluid">
+            <div className="d-flex justify-content-between align-items-center">
+              <h5 className="mb-0" style={{ color: "#294a70" }}>
+                Issue Management
+              </h5>
+              <span
+                className="badge text-light p-2"
+                style={{ backgroundColor: "#294a70" }}
+              >
+                {filteredIssues.length} Issues
+              </span>
+            </div>
+          </div>
         </Card.Header>
-        <Card.Body>
-          {/* Add Issue Form */}
+
+        {/* Add Issue Form */}
+        <Card.Body className="pt-3 pb-0 px-3">
           <Form onSubmit={handleAddIssue} className="mb-4">
             <Row>
-              <Col md={5}>
-                <Form.Group>
-                  <Form.Label>Issue Name</Form.Label>
-                  <Form.Control
-                    type="text"
-                    placeholder="Enter issue name"
-                    value={newIssueName}
-                    onChange={(e) => setNewIssueName(e.target.value)}
-                    className="rounded-pill"
-                  />
-                </Form.Group>
+              <Col md={5} sm={12} className="mb-2 mb-md-0">
+                <Form.Control
+                  type="text"
+                  placeholder="Enter issue name"
+                  value={newIssueName}
+                  onChange={(e) => setNewIssueName(e.target.value)}
+                  className="form-control-sm"
+                />
               </Col>
-              <Col md={4}>
-                <Form.Group>
-                  <Form.Label>Category</Form.Label>
-                  <Form.Select
-                    value={issueCategory}
-                    onChange={(e) => setIssueCategory(e.target.value)}
-                    className="rounded-pill"
-                  >
-                    <option value="hardware">Hardware</option>
-                    <option value="software">Software</option>
-                  </Form.Select>
-                </Form.Group>
+              <Col md={4} sm={8} className="mb-2 mb-md-0">
+                <Form.Select
+                  value={issueCategory}
+                  onChange={(e) => setIssueCategory(e.target.value)}
+                  className="form-control-sm"
+                >
+                  <option value="hardware">Hardware</option>
+                  <option value="software">Software</option>
+                </Form.Select>
               </Col>
-              <Col md={3} className="d-flex align-items-end">
+              <Col md={3} sm={4}>
                 <Button 
                   variant="primary" 
                   type="submit" 
-                  className="w-100 rounded-pill"
+                  className="btn-sm w-100 py-2"
                   disabled={isSubmitting}
+                  style={{ backgroundColor: "#294a70", borderColor: "#294a70" }}
                 >
                   {isSubmitting ? (
                     <>
-                      <Spinner as="span" animation="border" size="sm" className="me-2" />
+                      <Spinner as="span" animation="border" size="sm" className="me-1" />
                       Adding...
                     </>
                   ) : (
                     <>
-                      <FaPlus className="me-2" /> Add Issue
+                      Add Issue
                     </>
                   )}
                 </Button>
               </Col>
             </Row>
-            {error && <Form.Text className="text-danger mt-2">{error}</Form.Text>}
+            {error && <div className="text-danger small mt-2">{error}</div>}
           </Form>
+        </Card.Body>
 
-          {/* Search and Filter */}
-          <Row className="mb-3">
-            <Col md={6}>
-              <InputGroup>
-                <InputGroup.Text className="bg-light">
-                  <FaSearch />
-                </InputGroup.Text>
-                <FormControl
-                  placeholder="Search issues..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="border-start-0"
-                />
-              </InputGroup>
-            </Col>
-            <Col md={6}>
-              <InputGroup>
-                <InputGroup.Text className="bg-light">
-                  <FaFilter />
-                </InputGroup.Text>
-                <Form.Select
-                  value={filterCategory}
-                  onChange={(e) => setFilterCategory(e.target.value)}
-                  className="border-start-0"
-                >
-                  <option value="all">All Categories</option>
-                  <option value="hardware">Hardware</option>
-                  <option value="software">Software</option>
-                </Form.Select>
-              </InputGroup>
-            </Col>
-          </Row>
-
-          {/* Issues List */}
-          {isLoading ? (
-            <div className="text-center py-5">
-              <Spinner animation="border" variant="primary" />
-              <p className="mt-2">Loading issues...</p>
+        <Card.Body className="p-0">
+          {error && (
+            <div className="alert alert-danger m-3" role="alert">
+              {error}
             </div>
-          ) : filteredIssues.length === 0 ? (
-            <div className="text-center py-5 bg-light rounded">
-              <p className="mb-0 text-muted">No issues found. Add a new issue or change your filter criteria.</p>
+          )}
+
+          {filteredIssues.length === 0 ? (
+            <div className="d-flex justify-content-center align-items-center" style={{ height: "200px" }}>
+              <div className="text-muted">
+                {searchTerm || filterStatus !== "all"
+                  ? "No issues found matching your search criteria."
+                  : "No issues found. Add a new issue to get started."}
+              </div>
             </div>
           ) : (
-            <div className="table-responsive">
-              <Table striped hover className="align-middle">
-                <thead className="bg-light">
+            <div
+              className="table-responsive"
+              style={{ height: "calc(100vh - 250px)", overflowY: "auto" }}
+            >
+              <Table hover className="mb-0">
+                <thead className="sticky-top bg-white" style={{ top: "0" }}>
                   <tr>
-                    <th>#</th>
-                    <th>Issue Name</th>
-                    <th>Category</th>
-                    <th className="text-center">Actions</th>
+                    <th className="px-3" style={{ color: "#294a70" }}>
+                      Issue Name
+                    </th>
+                    <th className="px-3" style={{ color: "#294a70" }}>
+                      Category
+                    </th>
+                    <th className="px-3 text-center" style={{ color: "#294a70" }}>
+                      Actions
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
                   {filteredIssues.map((issue, index) => (
-                    <tr key={index}>
-                      <td>{index + 1}</td>
-                      <td className="fw-medium">{issue.issue_name}</td>
-                      <td>{getCategoryBadge(issue.issue_category)}</td>
-                      <td className="text-center">
-                        <Button 
-                          variant="outline-danger" 
-                          size="sm" 
-                          className="rounded-pill"
-                          onClick={() => handleDeleteIssue(issue.issue_id)}
+                    <tr key={issue.issue_id || index}>
+                      <td className="px-3">{issue.issue_name}</td>
+                      <td className="px-3">
+                        <Badge
+                          bg={getCategoryBadgeVariant(issue.issue_category)}
+                          style={{
+                            fontSize: "0.85rem",
+                            padding: "0.4em 0.6em",
+                          }}
                         >
-                          <FaRegTrashAlt className="me-1" /> Delete
+                          {issue.issue_category === "hardware" ? (
+                            <>Hardware</>
+                          ) : (
+                            <>Software</>
+                          )}
+                        </Badge>
+                      </td>
+                      <td className="px-3 text-center">
+                        <Button
+                          size="sm"
+                          variant="outline-danger"
+                          onClick={() => handleDeleteIssue(issue.issue_id)}
+                        >Delete
                         </Button>
                       </td>
                     </tr>
@@ -320,18 +314,43 @@ const Issues = () => {
               </Table>
             </div>
           )}
-          
-          {/* Summary Footer */}
-          <div className="d-flex justify-content-between mt-3 text-muted small">
-            <div>Total: {filteredIssues.length} issue(s)</div>
+        </Card.Body>
+
+        <Card.Footer className="bg-white border-0 p-3">
+          <div className="d-flex justify-content-between align-items-center text-muted small">
             <div>
-              Hardware: {filteredIssues.filter(i => i.issue_category === "hardware").length} | 
-              Software: {filteredIssues.filter(i => i.issue_category === "software").length}
+              Total Issues: <strong>{filteredIssues.length}</strong>
+            </div>
+            <div className="d-flex gap-3">
+              <span>
+                Hardware: <strong>{filteredIssues.filter(i => i.issue_category === "hardware").length}</strong>
+              </span>
+              <span>
+                Software: <strong>{filteredIssues.filter(i => i.issue_category === "software").length}</strong>
+              </span>
             </div>
           </div>
-        </Card.Body>
+        </Card.Footer>
       </Card>
-    </Container>
+
+      <style jsx>{`
+        .table th,
+        .table td {
+          vertical-align: middle;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 767px) {
+          .badge {
+            font-size: 0.75rem !important;
+          }
+          
+          .table th, .table td {
+            font-size: 0.9rem;
+          }
+        }
+      `}</style>
+    </div>
   );
 };
 

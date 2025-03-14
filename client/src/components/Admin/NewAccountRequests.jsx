@@ -176,7 +176,9 @@ const NewAccountRequests = ({
                         </div>
                         <div class="row mb-2">
                             <div class="col-md-3 fw-bold">Middle Name:</div>
-                            <div class="col-md-9">${formatMiddleName(request.middle_name)}</div>
+                            <div class="col-md-9">${formatMiddleName(
+                              request.middle_name
+                            )}</div>
                         </div>
                         <div class="row mb-2">
                             <div class="col-md-3 fw-bold">Designation:</div>
@@ -335,23 +337,68 @@ const NewAccountRequests = ({
     if (filterStatus === "all") return true;
     return request.status.toLowerCase() === filterStatus.toLowerCase();
   })
-  .filter(
-    (request) =>
-      searchTerm === "" ||
-      request.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      request.school.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  .filter((request) => {
+    if (searchTerm === "") return true;
 
-const accountStatusOptions = [
-  "Completed",
-  "Pending",
-  "In Progress",
-  "Rejected",
-];
+    const searchTermLower = searchTerm.toLowerCase();
+
+    // Search in request number - check if property exists and handle various formats
+    if (request.requestNumber !== undefined) {
+      const requestNumberStr = String(request.requestNumber).toLowerCase();
+      if (requestNumberStr.includes(searchTermLower)) {
+        return true;
+      }
+    }
+    
+    // Fallback to id if requestNumber is not present
+    if (request.id !== undefined) {
+      const idStr = String(request.id).toLowerCase();
+      if (idStr.includes(searchTermLower)) {
+        return true;
+      }
+    }
+
+    // Search in account type
+    if (
+      request.selected_type &&
+      request.selected_type.toLowerCase().includes(searchTermLower)
+    ) {
+      return true;
+    }
+
+    // Search in name fields (first name, surname, middle name)
+    if (
+      (request.first_name &&
+        request.first_name.toLowerCase().includes(searchTermLower)) ||
+      (request.surname &&
+        request.surname.toLowerCase().includes(searchTermLower)) ||
+      (request.middle_name &&
+        request.middle_name.toLowerCase().includes(searchTermLower))
+    ) {
+      return true;
+    }
+
+    // Search in school
+    if (
+      request.school &&
+      request.school.toLowerCase().includes(searchTermLower)
+    ) {
+      return true;
+    }
+
+    return false;
+  });
+
+  const accountStatusOptions = [
+    "Completed",
+    "Pending",
+    "In Progress",
+    "Rejected",
+  ];
 
   return (
     <>
-       {loading ? (
+      {loading ? (
         <div className="text-center py-4">
           <div className="spinner-border text-primary" role="status">
             <span className="visually-hidden">Loading...</span>
@@ -362,8 +409,13 @@ const accountStatusOptions = [
         <div>
           {/* Add a header with a badge for the count of filtered requests */}
           <div className="d-flex justify-content-between align-items-center mb-3">
-            <h5 className="mb-0" style={{ color: '#294a70' }}>New Account Requests</h5>
-            <span className="badge text-light p-2" style={{ backgroundColor: '#294a70' }}>
+            <h5 className="mb-0" style={{ color: "#294a70" }}>
+              New Account Requests
+            </h5>
+            <span
+              className="badge text-light p-2"
+              style={{ backgroundColor: "#294a70" }}
+            >
               {filteredNewAccountRequests.length} Requests
             </span>
           </div>
@@ -393,17 +445,24 @@ const accountStatusOptions = [
                       <td className="text-center">{request.selected_type}</td>
                       <td className="text-center">{request.surname}</td>
                       <td className="text-center">{request.first_name}</td>
-                      <td className="text-center">{formatMiddleName(request.middle_name)}</td>
+                      <td className="text-center">
+                        {formatMiddleName(request.middle_name)}
+                      </td>
                       <td className="text-center">{request.school}</td>
                       <td>
                         <Badge
                           bg={getStatusBadgeVariant(request.status)}
-                          style={{ fontSize: "0.85rem", padding: "0.4em 0.6em" }}
+                          style={{
+                            fontSize: "0.85rem",
+                            padding: "0.4em 0.6em",
+                          }}
                         >
                           {request.status}
                         </Badge>
                       </td>
-                      <td>{new Date(request.created_at).toLocaleDateString()}</td>
+                      <td>
+                        {new Date(request.created_at).toLocaleDateString()}
+                      </td>
                       <td className="d-flex justify-content-between">
                         <div>
                           <Button
@@ -419,9 +478,11 @@ const accountStatusOptions = [
                           {(() => {
                             // Count valid files
                             const files = {
-                              endorsement_letter: request.endorsement_letter || "",
+                              endorsement_letter:
+                                request.endorsement_letter || "",
                               prc_id: request.prc_id || "",
-                              proof_of_identity: request.proof_of_identity || "",
+                              proof_of_identity:
+                                request.proof_of_identity || "",
                             };
                             const fileCount = Object.values(files).filter(
                               (file) => file
@@ -433,7 +494,7 @@ const accountStatusOptions = [
                                 variant="outline-secondary"
                                 className="d-flex align-items-center"
                                 onClick={() => handleOpenFiles(request)}
-                                style={{ width: '65px' }}
+                                style={{ width: "65px" }}
                               >
                                 Files ({fileCount})
                               </Button>

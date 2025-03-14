@@ -273,6 +273,13 @@ const Navbar = () => {
               </a>
             </div>
           </div>
+          <a 
+            href="/staffchangepassword" 
+            className={`nav-link text-dark d-flex align-items-center py-3 px-2 hover-effect ${isActive('/staffchangepassword') ? 'active-nav-item' : ''}`}
+          >
+            <MdOutlineSpaceDashboard className="me-3 fs-5" />
+            <span style={{fontSize: '15px'}}>Reset Pssword</span> 
+          </a>
         </div>
       </div>
 

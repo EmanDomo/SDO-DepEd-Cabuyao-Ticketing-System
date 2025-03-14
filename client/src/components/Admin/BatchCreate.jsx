@@ -102,15 +102,6 @@ const BatchCreate = () => {
     }
   };
 
-
-
-
-
-
-
-
-
-
   const handleSchoolChange = (e) => {
     const selectedSchoolCode = e.target.value;
     setSchoolCode(selectedSchoolCode);
