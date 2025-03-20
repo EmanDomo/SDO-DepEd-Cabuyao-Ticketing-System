@@ -258,7 +258,7 @@ const BatchList = ({ status }) => {
                       <th className="px-3" style={{color: '#294a70'}}>Cancelled Date</th>
                     )}
                     <th className="px-3" style={{color: '#294a70'}}>Status</th>
-                    <th className="px-3" style={{color: '#294a70'}}>Actions</th>
+                    <th className="px-3 text-center" style={{color: '#294a70'}}>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -293,7 +293,7 @@ const BatchList = ({ status }) => {
                         </span>
                       </td>
                       <td className="px-3">
-                        <div className="d-flex gap-2 flex-wrap">
+                        <div className="gap-2 d-flex justify-content-between">
                           <Button
                             size="sm"
                             variant="primary"

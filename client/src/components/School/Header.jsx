@@ -15,6 +15,8 @@ import { FaRegListAlt } from "react-icons/fa";
 import { FaRegUser } from "react-icons/fa";
 import Swal from "sweetalert2";
 import { TbTruckDelivery } from "react-icons/tb";
+import { TbPencilCog } from "react-icons/tb";
+
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -277,7 +279,7 @@ const Navbar = () => {
             href="/staffchangepassword" 
             className={`nav-link text-dark d-flex align-items-center py-3 px-2 hover-effect ${isActive('/staffchangepassword') ? 'active-nav-item' : ''}`}
           >
-            <MdOutlineSpaceDashboard className="me-3 fs-5" />
+            <TbPencilCog className="me-3 fs-5" />
             <span style={{fontSize: '15px'}}>Reset Pssword</span> 
           </a>
         </div>
