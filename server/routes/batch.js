@@ -400,3 +400,4 @@ router.get("/batch/:batchId/devices", (req, res) => {
 });
 
 module.exports = router;
+    
