@@ -12,6 +12,7 @@ import BatchCreate from "./BatchCreate";
 import AdminHeader from "./AdminHeader";
 import ViewBatches from "./ViewBatches";
 import Issues from "./Issues";
+import AdminChangePassword from "./AdminChangePassword";
 import { useWindowSize } from "react-use";
 
 const AdminDashboard = () => {
@@ -151,7 +152,8 @@ const AdminDashboard = () => {
   };
 
   // Determine if search/filter should be visible
-  const shouldShowSearchFilter = activeTab !== "batchCreate";
+  // const shouldShowSearchFilter = activeTab !== "batchCreate";
+  const shouldShowSearchFilter = activeTab !== "batchCreate" && activeTab !== "adminchangepass";
 
   // Get search placeholder based on active tab
   const getSearchPlaceholder = () => {
@@ -311,6 +313,10 @@ const AdminDashboard = () => {
                 filterStatus={filterStatus}
                 searchTerm={searchTerm}
               />
+            </Tab.Pane>
+
+            <Tab.Pane eventKey="adminchangepass">
+              <AdminChangePassword />
             </Tab.Pane>
           </Tab.Content>
         </Tab.Container>

@@ -2,7 +2,7 @@ import React, { useRef, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Container, Form, Button, Card } from "react-bootstrap";
 import { jwtDecode } from "jwt-decode";
-import Logo from "../../Assets/SDO_Logo1.png";
+import Logo from "../../assets/SDO_Logo1.png";
 import "../../styles/Login.css";
 import InputGroup from "react-bootstrap/InputGroup";
 import { LuUser } from "react-icons/lu";

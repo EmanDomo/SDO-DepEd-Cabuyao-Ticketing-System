@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../Context/AuthContext";
 import { Badge, Offcanvas } from "react-bootstrap";
 import { useWindowSize } from "react-use";
-import Logo from "../../Assets/SDO_Logo1.png";
+import Logo from "../../assets/SDO_Logo1.png";
 import { LuTickets } from "react-icons/lu";
 import { FaRegUser, FaBoxOpen } from "react-icons/fa";
 import { BiUserPlus } from "react-icons/bi";
@@ -11,6 +11,7 @@ import { MdOutlineRestartAlt } from "react-icons/md";
 import { CiViewList } from "react-icons/ci";
 import Swal from "sweetalert2";
 import { MdAddChart } from "react-icons/md";
+import { IoKeyOutline } from "react-icons/io5";
 
 const AdminHeader = ({ 
   firstName, 
@@ -153,6 +154,14 @@ const AdminHeader = ({
           >
             <MdAddChart className="me-3 fs-5" />
             Manage Issue
+          </button>
+
+          <button
+            className={`nav-link text-dark d-flex align-items-center py-3 px-1 hover-effect border-0 bg-transparent w-100 text-start ${activeTab === 'adminchangepass' ? 'active-nav-item' : ''}`}
+            onClick={() => setActiveTab('adminchangepass')}
+          >
+            <IoKeyOutline className="me-3 fs-5" />
+            Change Password
           </button>
         </div>
       </div>

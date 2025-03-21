@@ -5,7 +5,7 @@ import { useAuth } from "../Context/AuthContext";
 import Badge from "react-bootstrap/Badge";
 import { Offcanvas } from "react-bootstrap";
 import { useWindowSize } from "react-use";
-import Logo from "../../Assets/SDO_Logo1.png";
+import Logo from "../../assets/SDO_Logo1.png";
 import { 
   MdOutlineSpaceDashboard, 
   MdKeyboardArrowDown 
