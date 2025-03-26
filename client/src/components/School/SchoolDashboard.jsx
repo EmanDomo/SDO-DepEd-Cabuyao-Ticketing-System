@@ -12,6 +12,7 @@ import { FaRegCheckCircle } from "react-icons/fa";
 import { MdOutlineCancel } from "react-icons/md";
 import { MdOutlinePending } from "react-icons/md";
 import { FaRegPauseCircle } from "react-icons/fa";
+import { host } from '../../apiRoutes';
 
 const SchoolDashboard = () => {
   const navigate = useNavigate();
@@ -61,7 +62,7 @@ const SchoolDashboard = () => {
             statuses.map(async (status) => {
               try {
                 const response = await axios.get(
-                  `http://localhost:8080/tickets/${username}/${status}`
+                  `${host}/tickets/${username}/${status}`
                 );
                 countsObj[status] = response.data.length;
               } catch (err) {

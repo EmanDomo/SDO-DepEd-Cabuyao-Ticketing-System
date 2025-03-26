@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Form, Button, Card, Container } from "react-bootstrap";
 import Swal from "sweetalert2";
+import { host } from '../../apiRoutes';
 
 const CheckTransaction = () => {
   const [transactionNumber, setTransactionNumber] = useState("");
@@ -12,7 +13,7 @@ const CheckTransaction = () => {
 
     try {
       const response = await fetch(
-        `http://localhost:8080/check-transaction?number=${transactionNumber}`
+        `${host}/check-transaction?number=${transactionNumber}`
       );
 
       if (response.ok) {

@@ -14,6 +14,7 @@ import ViewBatches from "./ViewBatches";
 import Issues from "./Issues";
 import AdminChangePassword from "./AdminChangePassword";
 import { useWindowSize } from "react-use";
+import { host } from '../../apiRoutes';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -54,7 +55,7 @@ const AdminDashboard = () => {
   const fetchTickets = async () => {
     try {
       setLoading(true);
-      const response = await axios.get("http://localhost:8080/tickets");
+      const response = await axios.get(`${host}/tickets`);
       const data = response.data;
 
       if (!Array.isArray(data)) {
@@ -74,7 +75,7 @@ const AdminDashboard = () => {
   const fetchNewAccountRequests = async () => {
     try {
       const response = await axios.get(
-        "http://localhost:8080/deped-account-requests"
+        `${host}/deped-account-requests`
       );
       const data = response.data;
 
@@ -93,7 +94,7 @@ const AdminDashboard = () => {
   const fetchResetAccountRequests = async () => {
     try {
       const response = await axios.get(
-        "http://localhost:8080/deped-account-reset-requests"
+        `${host}/deped-account-reset-requests`
       );
       const data = response.data;
 

@@ -4,6 +4,7 @@ import { jwtDecode } from "jwt-decode";
 import { useAuth } from "../Context/AuthContext";
 import axios from "axios";
 import { Table, Badge, Button, Form } from "react-bootstrap";
+import { host } from '../../apiRoutes';
 
 const Batches = () => {
   const [batches, setBatches] = useState([]);
@@ -20,7 +21,7 @@ const Batches = () => {
 
   const fetchBatches = async () => {
     try {
-      const response = await axios.get("http://localhost:8080/batches");
+      const response = await axios.get(`${host}/batches`);
       // Group devices by batch_id
       const groupedBatches = groupBatchesByBatchId(response.data);
       setBatches(groupedBatches);

@@ -3,6 +3,7 @@ import { Card, Table, Button, Badge } from "react-bootstrap";
 import axios from "axios";
 import Swal from "sweetalert2";
 import { FaEye } from "react-icons/fa";
+import { host } from '../../apiRoutes';
 
 const ViewBatches = ({ filterStatus = "all", searchTerm = "" }) => {
   const [batches, setBatches] = useState([]);
@@ -13,7 +14,7 @@ const ViewBatches = ({ filterStatus = "all", searchTerm = "" }) => {
   const fetchBatches = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await axios.get("http://localhost:8080/schoolBatches");
+      const response = await axios.get(`${host}/schoolBatches`);
       setBatches(Array.isArray(response.data) ? response.data : []);
       setError(""); // Clear any previous errors
     } catch (err) {
@@ -34,7 +35,7 @@ const ViewBatches = ({ filterStatus = "all", searchTerm = "" }) => {
   const handleViewDevices = async (batchId) => {
     try {
       const response = await axios.get(
-        `http://localhost:8080/batch/${batchId}/devices`
+        `${host}/batch/${batchId}/devices`
       );
       const devices = response.data;
 
@@ -105,7 +106,7 @@ const ViewBatches = ({ filterStatus = "all", searchTerm = "" }) => {
       });
 
       if (result.isConfirmed) {
-        await axios.put(`http://localhost:8080/cancelbatch/${batchId}`);
+        await axios.put(`${host}/cancelbatch/${batchId}`);
 
         await Swal.fire({
           title: "Cancelled!",

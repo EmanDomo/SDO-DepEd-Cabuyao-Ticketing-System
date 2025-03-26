@@ -4,6 +4,7 @@ import { FaRegTrashAlt } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { Modal } from 'react-bootstrap';
 import Swal from "sweetalert2";
+import { host } from '../../apiRoutes';
 
   const RequestDepedAccount = () => {
   const navigate = useNavigate();
@@ -36,7 +37,7 @@ import Swal from "sweetalert2";
     // Fetch schools from the database on component mount
     const fetchSchools = async () => {
       try {
-        const response = await fetch("http://localhost:8080/schoolList");
+        const response = await fetch(`${host}/schoolList`);
         if (response.ok) {
           const data = await response.json();
           setSchools(data);
@@ -52,7 +53,7 @@ import Swal from "sweetalert2";
         // Fetch designations from the database on component mount
         const fetchDesignations = async () => {
           try {
-            const response = await fetch("http://localhost:8080/designations");
+            const response = await fetch(`${host}/designations`);
             if (response.ok) {
               const data = await response.json();
               setDesignations(data);
@@ -185,7 +186,7 @@ import Swal from "sweetalert2";
     let body = null;
   
     if (requestType === "new") {
-      endpoint = "http://localhost:8080/request-deped-account";
+      endpoint = `${host}/request-deped-account`;
       body = new FormData();
   
       body.append("selectedType", selectedType);
@@ -208,7 +209,7 @@ import Swal from "sweetalert2";
         return;
       }
     } else if (requestType === "reset") {
-      endpoint = "http://localhost:8080/reset-deped-account";
+      endpoint = `${host}/reset-deped-account`;
       body = JSON.stringify({
         selectedType: selectedType,
         surname: surname,

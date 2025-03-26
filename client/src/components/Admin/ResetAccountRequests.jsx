@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Table, Button, Badge } from "react-bootstrap";
 import axios from "axios";
 import Swal from "sweetalert2";
+import { host } from '../../apiRoutes';
 
 const ResetAccountRequests = ({
   resetAccountRequests,
@@ -27,7 +28,7 @@ const ResetAccountRequests = ({
 
       if (result.isConfirmed) {
         await axios.put(
-          `http://localhost:8080/deped-account-reset-requests/${requestId}/status`,
+          `${host}/deped-account-reset-requests/${requestId}/status`,
           {
             status: newStatus,
           }

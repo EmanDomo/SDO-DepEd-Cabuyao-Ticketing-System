@@ -14,6 +14,7 @@ import {
   Modal,
 } from "react-bootstrap";
 import Swal from 'sweetalert2';
+import { host } from '../../apiRoutes';
 
 const Ticket = () => {
   const [ticketNumber, setTicketNumber] = useState(null);
@@ -43,7 +44,7 @@ const Ticket = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get('http://localhost:8080/issues');
+        const response = await axios.get(`${host}/issues`);
         setIssues(response.data);
 
         // Extract unique categories from issues
@@ -97,7 +98,7 @@ const Ticket = () => {
 
   const handleViewDevices = async (batchId) => {
     try {
-      const response = await axios.get(`http://localhost:8080/batch/${batchId}/devices`);
+      const response = await axios.get(`${host}/batch/${batchId}/devices`);
       const devices = response.data;
 
       Swal.fire({
@@ -227,7 +228,7 @@ const Ticket = () => {
         }
 
         const response = await axios.get(
-          `http://localhost:8080/batches/${decoded.schoolCode}`,
+          `${host}/batches/${decoded.schoolCode}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -348,7 +349,7 @@ const Ticket = () => {
     formData.attachments.forEach(file => data.append("attachments", file));
 
     try {
-      const response = await axios.post("http://localhost:8080/createTickets", data, {
+      const response = await axios.post(`${host}/createTickets`, data, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 

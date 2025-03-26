@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Table, Button, Badge, Row, Col } from "react-bootstrap";
 import axios from "axios";
 import Swal from "sweetalert2";
+import { host } from '../../apiRoutes';
 
 const SupportTickets = ({
   tickets,
@@ -64,7 +65,7 @@ const SupportTickets = ({
             button.addEventListener("click", () => {
               const filename = button.getAttribute("data-filename");
               window.open(
-                `http://localhost:8080/uploads/${filename}`,
+                `${host}/uploads/${filename}`,
                 "_blank"
               );
             });
@@ -96,7 +97,7 @@ const SupportTickets = ({
       });
 
       if (result.isConfirmed) {
-        await axios.put(`http://localhost:8080/tickets/${ticketId}/status`, {
+        await axios.put(`${host}/tickets/${ticketId}/status`, {
           status: newStatus,
         });
         await fetchTickets();

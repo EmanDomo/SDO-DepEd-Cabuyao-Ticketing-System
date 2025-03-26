@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
+import { host } from '../../apiRoutes';
 import { 
   Card, 
   Table, 
@@ -30,7 +31,7 @@ const Issues = ({ filterStatus = "all", searchTerm = "" }) => {
   const fetchIssues = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await axios.get("http://localhost:8080/issues");
+      const response = await axios.get(`${host}/issues`);
       setIssues(Array.isArray(response.data) ? response.data : []);
       setError(""); // Clear any previous errors
     } catch (err) {
@@ -62,7 +63,7 @@ const Issues = ({ filterStatus = "all", searchTerm = "" }) => {
     }
 
     try {
-      await axios.post("http://localhost:8080/addIssue", {
+      await axios.post(`${host}/addIssue`, {
         issue_name: newIssueName.trim(),
         issue_category: issueCategory
       });
@@ -116,7 +117,7 @@ const Issues = ({ filterStatus = "all", searchTerm = "" }) => {
 
     if (result.isConfirmed) {
       try {
-        await axios.get(`http://localhost:8080/deleteissue/${issueId}`);
+        await axios.get(`${host}/deleteissue/${issueId}`);
 
         // Show success message
         Swal.fire({

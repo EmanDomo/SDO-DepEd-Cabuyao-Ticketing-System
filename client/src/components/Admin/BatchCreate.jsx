@@ -4,6 +4,7 @@ import axios from "axios";
 import { jwtDecode } from "jwt-decode";
 import { FaRegTrashAlt } from "react-icons/fa";
 import { Dropdown } from 'react-bootstrap';
+import { host } from '../../apiRoutes';
 
 import {
   Container,
@@ -36,7 +37,7 @@ const BatchCreate = () => {
   useEffect(() => {
     if (district) {
       axios
-        .get(`http://localhost:8080/schools?district=${district}`)
+        .get(`${host}/schools?district=${district}`)
         .then((response) => {
           console.log("API Response:", response.data);
           setSchools(Array.isArray(response.data) ? response.data : []);
@@ -47,7 +48,7 @@ const BatchCreate = () => {
         });
     }
     axios
-      .get("http://localhost:8080/devices")
+      .get(`${host}/devices`)
       .then((response) => {
         setDevices(Array.isArray(response.data) ? response.data : []);
       })
@@ -65,7 +66,7 @@ const BatchCreate = () => {
     const fetchNextBatchNumber = async () => {
       try {
         const response = await axios.get(
-          "http://localhost:8080/nextBatchNumber"
+          `${host}`/nextBatchNumber``
         );
         setBatchNumber(response.data.nextBatchNumber);
       } catch (err) {
@@ -88,7 +89,7 @@ const BatchCreate = () => {
     }
 
     try {
-      const response = await axios.get(`http://localhost:8080/deletedevice/${encodeURIComponent(deviceName)}`);
+      const response = await axios.get(`${host}/deletedevice/${encodeURIComponent(deviceName)}`);
       if (response.data.success) {
         console.log("Device deleted successfully");
 
@@ -170,7 +171,7 @@ const BatchCreate = () => {
 
   const addNewDeviceType = async (deviceName) => {
     try {
-      const response = await axios.post("http://localhost:8080/adddevice", {
+      const response = await axios.post(`${host}/adddevice`, {
         device_name: deviceName,
       });
 
@@ -257,7 +258,7 @@ const BatchCreate = () => {
 
     try {
       const response = await axios.post(
-        "http://localhost:8080/createbatch",
+        `${host}/createbatch`,
         newBatch
       );
       if (response.status === 200 || response.status === 201) {
@@ -266,7 +267,7 @@ const BatchCreate = () => {
 
         // Get the next batch number
         const nextBatchResponse = await axios.get(
-          "http://localhost:8080/nextBatchNumber"
+          `${host}/nextBatchNumber`
         );
         setBatchNumber(nextBatchResponse.data.nextBatchNumber);
 

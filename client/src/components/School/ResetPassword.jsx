@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import axios from "axios";
 import Nav from "./Header"; // Navigation Component
 import "../../styles/ResetPassword.css";
+import { host } from '../../apiRoutes';
 
 const ResetPassword = () => {
     const [formData, setFormData] = useState({
@@ -22,7 +23,7 @@ const ResetPassword = () => {
         e.preventDefault();
 
         try {
-            const response = await axios.post("http://localhost:8080/idas-reset", formData);
+            const response = await axios.post(`${host}/idas-reset`, formData);
             setMessage(response.data.message);
             setFormData({ name: "", school: "", schoolId: "", employeeNumber: "" }); // Clear form
         } catch (error) {

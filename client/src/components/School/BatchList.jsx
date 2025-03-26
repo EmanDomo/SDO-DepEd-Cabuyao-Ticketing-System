@@ -4,6 +4,7 @@ import { jwtDecode } from "jwt-decode";
 import axios from "axios";
 import Swal from "sweetalert2";
 import { FaSearch, FaExclamationTriangle } from "react-icons/fa";
+import { host } from '../../apiRoutes';
 
 const BatchList = ({ status }) => {
   const [batches, setBatches] = useState([]);
@@ -15,7 +16,7 @@ const BatchList = ({ status }) => {
 
   const handleViewDevices = async (batchId) => {
     try {
-      const response = await axios.get(`http://localhost:8080/batch/${batchId}/devices`);
+      const response = await axios.get(`${host}/batch/${batchId}/devices`);
       const devices = response.data;
 
       if (!Array.isArray(devices) || devices.length === 0) {
@@ -81,7 +82,7 @@ const BatchList = ({ status }) => {
       });
 
       if (result.isConfirmed) {
-        await axios.put(`http://localhost:8080/receivebatch/${batchId}`);
+        await axios.put(`${host}/receivebatch/${batchId}`);
         await Swal.fire({
           title: "Received!",
           text: "The batch has been received successfully.",
@@ -120,7 +121,7 @@ const BatchList = ({ status }) => {
       const statusParam = status.toLowerCase();
       
       const response = await axios.get(
-        `http://localhost:8080/receivebatch/${decoded.schoolCode}/${statusParam}`
+        `${host}/receivebatch/${decoded.schoolCode}/${statusParam}`
       );
       
       // Handle different API response formats safely

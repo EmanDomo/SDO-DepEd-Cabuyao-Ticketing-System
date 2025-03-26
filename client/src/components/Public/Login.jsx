@@ -13,6 +13,7 @@ import { useAuth } from "../Context/AuthContext";
 import Modal from "react-bootstrap/Modal";
 import { Link } from "react-router-dom";
 import Swal from "sweetalert2";
+import { host } from '../../apiRoutes';
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -53,7 +54,7 @@ const Login = () => {
     const password = formRef.current.password.value;
 
     try {
-      const response = await fetch("http://localhost:8080/login", {
+      const response = await fetch(`${host}/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),

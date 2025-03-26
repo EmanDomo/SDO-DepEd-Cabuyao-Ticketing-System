@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Table, Button, Badge } from "react-bootstrap";
 import axios from "axios";
 import Swal from "sweetalert2";
+import { host } from '../../apiRoutes';
 
 const NewAccountRequests = ({
   newAccountRequests,
@@ -71,7 +72,7 @@ const NewAccountRequests = ({
           button.addEventListener("click", () => {
             const filename = button.getAttribute("data-filename");
             window.open(
-              `http://localhost:8080/deped_uploads/${filename}`,
+              `${host}/deped_uploads/${filename}`,
               "_blank"
             );
           });
@@ -95,7 +96,7 @@ const NewAccountRequests = ({
 
       if (result.isConfirmed) {
         await axios.put(
-          `http://localhost:8080/deped-account-requests/${requestId}/status`,
+          `${host}/deped-account-requests/${requestId}/status`,
           {
             status: newStatus,
           }

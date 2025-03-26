@@ -6,6 +6,7 @@ import { useWindowSize } from "react-use";
 import Swal from "sweetalert2";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
+import { host } from '../../apiRoutes';
 
 const AdminChangePassword = () => { // Changed component name to match file name
   const [currentPassword, setCurrentPassword] = useState("");
@@ -72,7 +73,7 @@ const AdminChangePassword = () => { // Changed component name to match file name
         try {
           const token = localStorage.getItem("token");
           const response = await axios.post(
-            "http://localhost:8080/change-password",
+            `${host}/change-password`,
             { currentPassword, newPassword, confirmPassword },
             { headers: { Authorization: `Bearer ${token}` } }
           );
